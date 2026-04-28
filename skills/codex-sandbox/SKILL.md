@@ -1,11 +1,33 @@
 ---
-name: codex-sandbox-script
-description: Use when the user asks to create, set up, build, or run a Codex sandbox. Create a bash script the user can execute later to build the Docker image, prepare SSH files, start a persistent Codex sandbox container, and enter it. Do not execute the generated script unless the user explicitly asks. Trigger on requests such as "建立 codex sandbox", "create a codex sandbox", "幫我開 codex sandbox", or "make a sandbox for Codex".
+name: codex-sandbox
+description: Use when the user asks to create, set up, build, update, or run a Codex sandbox. Use this skill's bundled src/ directory as the canonical Codex sandbox source path, including src/Dockerfile and src/build_and_exec.sh. Create or update a bash script the user can execute later to build the Docker image, prepare SSH files, start a persistent Codex sandbox container, and enter it. Do not execute Docker commands unless the user explicitly asks. Trigger on requests such as "建立 codex sandbox", "create a codex sandbox", "幫我開 codex sandbox", or "make a sandbox for Codex".
 ---
 
-# Codex Sandbox Script
+# Codex Sandbox
 
-When the user asks to create a Codex sandbox, write a bash script for them to run instead of only explaining Docker commands. The final output of the workflow is the `.sh` file; do not run it yourself unless the user explicitly requests execution.
+When the user asks to create or update a Codex sandbox, use the bundled `src/` directory beside this `SKILL.md` as the source of truth.
+
+Expected skill layout:
+
+```text
+codex-sandbox/
+├── SKILL.md
+└── src/
+    ├── Dockerfile
+    ├── README.md
+    ├── build_and_exec.sh
+    └── shell/
+```
+
+The normal deliverable is a `.sh` file the user can run later. Do not run it yourself unless the user explicitly requests execution.
+
+## Path Rules
+
+- Treat `src/` as the Codex sandbox project root.
+- Use `src/Dockerfile` as the Docker build definition.
+- Use `src/build_and_exec.sh` as the default script to update when working inside this installed skill.
+- If the user wants a sandbox in another project, copy or adapt files from this skill's `src/` path into the target path instead of using stale repo paths.
+- Do not refer to the old skill name `codex-sandbox-script`.
 
 ## Required Questions
 
@@ -19,9 +41,9 @@ If the user wants to proceed without answering, create the script with empty `MO
 
 ## Workflow
 
-1. Inspect the repository enough to find the `codex-sandbox/` directory and its `Dockerfile`.
+1. Locate this skill's `src/` directory beside `SKILL.md`; confirm `src/Dockerfile` exists.
 2. Ask the required mount questions above before editing files, unless the user already answered them.
-3. Create a new script under `codex-sandbox/shell/` when editing this repo. Do not create, overwrite, or modify `codex-sandbox/build_and_exec.sh`. When no project convention exists, create a new `build_codex_sandbox.sh`-style script in the user's current workspace.
+3. Update `src/build_and_exec.sh` when editing the installed skill. When creating a sandbox for another project, create a new `build_codex_sandbox.sh`-style script in the user's requested target directory and base it on `src/build_and_exec.sh`.
 4. Make the script executable with `chmod +x <script>`.
 5. Keep paths configurable through environment variables, with safe defaults.
 6. Include `set -euo pipefail`.
@@ -47,8 +69,9 @@ CONTAINER_NAME="${CONTAINER_NAME:-codex-sandbox}"
 USERNAME="${USERNAME:-$(id -un)}"
 CONTAINER_HOME="${CONTAINER_HOME:-/home/${USERNAME}}"
 CONTAINER_WORKDIR="${CONTAINER_WORKDIR:-/workspace}"
-WORKSPACE_DIR="${WORKSPACE_DIR:-$(dirname "${SCRIPT_DIR}")}"
-SSH_DIR="${SSH_DIR:-${SCRIPT_DIR}/../.runtime/ssh}"
+BUILD_CONTEXT="${BUILD_CONTEXT:-${SCRIPT_DIR}}"
+WORKSPACE_DIR="${WORKSPACE_DIR:-$(pwd)}"
+SSH_DIR="${SSH_DIR:-${SCRIPT_DIR}/.runtime/ssh}"
 MODEL_DIR="${MODEL_DIR:-}"
 DATA_DIR="${DATA_DIR:-}"
 CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR:-/models}"
@@ -88,7 +111,7 @@ docker build \
   --build-arg GID="$(id -g)" \
   --build-arg USERNAME="${USERNAME}" \
   -t "${IMAGE_NAME}" \
-  "${SCRIPT_DIR}"
+  "${BUILD_CONTEXT}"
 
 docker_args=(
   run -d
