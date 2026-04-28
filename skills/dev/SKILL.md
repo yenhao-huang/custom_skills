@@ -1,6 +1,6 @@
 ---
 name: dev
-description: Use for software development tasks, especially when the user asks to design, implement, debug, test, refactor, benchmark, or run experiments. Always apply the Superpowers design/develop/test workflow and use ralph-loop for experiment iteration when experiments, benchmarks, ablations, or uncertain technical choices are involved.
+description: Use for software development tasks, especially when the user asks to design, implement, debug, test, refactor, benchmark, or run experiments. Always apply the Superpowers design/develop/test workflow, read src/convention.md when present, and use ralph-loop for experiment iteration when experiments, benchmarks, ablations, or uncertain technical choices are involved.
 ---
 
 # Dev
@@ -9,12 +9,12 @@ Use this skill for coding work and engineering experiments.
 
 ## Required Habits
 
-1. Use Superpowers for the development workflow:
+1. Read `src/convention.md` before changing code when it exists in the target project.
+2. Use Superpowers for the development workflow:
    - `design`: clarify the target behavior, constraints, risks, and smallest useful implementation.
-   - `develop`: make scoped changes that fit the existing codebase.
+   - `develop`: make scoped changes that fit the existing codebase and `src/convention.md`.
    - `test`: run the most relevant validation and report what passed or could not be run.
-
-2. Use `ralph-loop` for experiments:
+3. Use `ralph-loop` for experiments:
    - Use it when the task involves experiments, benchmarks, ablations, model/data comparisons, hyperparameters, performance tuning, or uncertain technical choices.
    - Treat each loop as: hypothesis -> command/config -> result -> decision -> next loop.
    - Keep experiment outputs reproducible by recording commands, changed configs, inputs, metrics, and artifacts.
@@ -22,9 +22,17 @@ Use this skill for coding work and engineering experiments.
 
 ## Workflow
 
+### Convention
+
+- Before Superpowers `design`, check whether `src/convention.md` exists in the target project.
+- If it exists, read it completely enough to extract the project rules that affect the task.
+- Carry those rules into the following `design`, `develop`, and `test` steps.
+- If it does not exist, continue with the normal workflow and do not invent missing conventions.
+
 ### Design
 
 - Read the local context before deciding.
+- Use the rules learned from `src/convention.md` when it exists.
 - State the intended change or experiment briefly when the work is non-trivial.
 - Prefer existing project conventions over new abstractions.
 - Define the validation target before editing or running experiments.
