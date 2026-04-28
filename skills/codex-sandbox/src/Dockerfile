@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client \
     git \
     sudo \
+    curl \
     ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 

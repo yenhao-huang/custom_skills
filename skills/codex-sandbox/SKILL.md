@@ -27,6 +27,9 @@ The normal deliverable is a `.sh` file the user can run later. Do not run it you
 - Use `src/Dockerfile` as the Docker build definition.
 - Use `src/build_and_exec.sh` as the default script to update when working inside this installed skill.
 - If the user wants a sandbox in another project, copy or adapt files from this skill's `src/` path into the target path instead of using stale repo paths.
+- Put generated runtime files in the target project's `.runtime/` directory. This includes generated sandbox shell scripts such as `.runtime/build_codex_sandbox.sh` and prepared SSH files under `.runtime/.ssh`.
+- Do not place generated sandbox scripts at the target project root unless the user explicitly requests that location.
+- When adding `.runtime/` files to a target project, ensure the target project's `.gitignore` contains `.runtime/`.
 - Do not refer to the old skill name `codex-sandbox-script`.
 
 ## Required Questions
@@ -43,16 +46,17 @@ If the user wants to proceed without answering, create the script with empty `MO
 
 1. Locate this skill's `src/` directory beside `SKILL.md`; confirm `src/Dockerfile` exists.
 2. Ask the required mount questions above before editing files, unless the user already answered them.
-3. Update `src/build_and_exec.sh` when editing the installed skill. When creating a sandbox for another project, create a new `build_codex_sandbox.sh`-style script in the user's requested target directory and base it on `src/build_and_exec.sh`.
-4. Make the script executable with `chmod +x <script>`.
-5. Keep paths configurable through environment variables, with safe defaults.
-6. Include `set -euo pipefail`.
-7. If a container with the chosen name already exists, stop and remove it before starting a new one.
-8. Build `codex-sandbox:local` using the host UID, GID, and username.
-9. Prepare an SSH directory under `.runtime/ssh` if SSH keys exist on the host. Copy `id_ed25519`, `id_ed25519.pub`, and `known_hosts` only when present; set strict permissions.
-10. Write the script so that, when the user runs it later, it starts a detached container that sleeps forever and mounts the workspace, SSH directory, optional model/data directories, and any extra mount directories.
-11. Write the script so that, when the user runs it later, it ends with `docker exec -it "${CONTAINER_NAME}" bash` and lands inside the container.
-12. Stop after creating and syntax-checking the `.sh` file. Do not run the script or execute Docker commands yourself unless the user explicitly asks you to run it.
+3. Update `src/build_and_exec.sh` when editing the installed skill. When creating a sandbox for another project, create a new `.runtime/build_codex_sandbox.sh`-style script in the user's requested target directory and base it on `src/build_and_exec.sh`.
+4. Ensure the target project's `.gitignore` contains `.runtime/` before or while adding generated `.runtime/` files. Preserve existing `.gitignore` contents.
+5. Make the script executable with `chmod +x <script>`.
+6. Keep paths configurable through environment variables, with safe defaults.
+7. Include `set -euo pipefail`.
+8. If a container with the chosen name already exists, stop and remove it before starting a new one.
+9. Build `codex-sandbox:local` using the host UID, GID, and username.
+10. Prepare an SSH directory under `.runtime/.ssh` if SSH keys exist on the host. Copy `id_ed25519`, `id_ed25519.pub`, and `known_hosts` only when present; set strict permissions.
+11. Write the script so that, when the user runs it later, it starts a detached container that sleeps forever and mounts the workspace, SSH directory, optional model/data directories, and any extra mount directories.
+12. Write the script so that, when the user runs it later, it ends with `docker exec -it "${CONTAINER_NAME}" bash` and lands inside the container.
+13. Stop after creating and syntax-checking the `.sh` file. Do not run the script or any Docker commands unless the user explicitly asks you to run it.
 
 ## Script Template
 
@@ -63,20 +67,22 @@ Use this structure unless the repo already has stronger conventions:
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 IMAGE_NAME="${IMAGE_NAME:-codex-sandbox:local}"
 CONTAINER_NAME="${CONTAINER_NAME:-codex-sandbox}"
 USERNAME="${USERNAME:-$(id -un)}"
 CONTAINER_HOME="${CONTAINER_HOME:-/home/${USERNAME}}"
 CONTAINER_WORKDIR="${CONTAINER_WORKDIR:-/workspace}"
-BUILD_CONTEXT="${BUILD_CONTEXT:-${SCRIPT_DIR}}"
-WORKSPACE_DIR="${WORKSPACE_DIR:-$(pwd)}"
-SSH_DIR="${SSH_DIR:-${SCRIPT_DIR}/.runtime/ssh}"
+BUILD_CONTEXT="${BUILD_CONTEXT:-/home/howard/.agents/skills/codex-sandbox/src}"
+WORKSPACE_DIR="${WORKSPACE_DIR:-${PROJECT_DIR}}"
+SSH_DIR="${SSH_DIR:-${SCRIPT_DIR}/.ssh}"
 MODEL_DIR="${MODEL_DIR:-}"
 DATA_DIR="${DATA_DIR:-}"
 CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR:-/models}"
 CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR:-/data}"
 EXTRA_MOUNTS="${EXTRA_MOUNTS:-}"
+GPU_DEVICES="${GPU_DEVICES:-all}"
 
 mkdir -p "${SSH_DIR}"
 
@@ -118,9 +124,15 @@ docker_args=(
   --name "${CONTAINER_NAME}"
   -w "${CONTAINER_WORKDIR}"
   -e "HOME=${CONTAINER_HOME}"
+  -e "NVIDIA_VISIBLE_DEVICES=${GPU_DEVICES}"
+  -e "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
   -v "${WORKSPACE_DIR}:${CONTAINER_WORKDIR}"
   -v "${SSH_DIR}:${CONTAINER_HOME}/.ssh:ro"
 )
+
+if [[ -n "${GPU_DEVICES}" && "${GPU_DEVICES}" != "none" ]]; then
+  docker_args+=(--gpus "${GPU_DEVICES}")
+fi
 
 if [[ -n "${MODEL_DIR}" ]]; then
   docker_args+=(-v "${MODEL_DIR}:${CONTAINER_MODEL_DIR}")
@@ -147,6 +159,12 @@ After writing the script:
 
 ```bash
 bash -n <script>
+```
+
+Also verify the target project's `.gitignore` contains:
+
+```gitignore
+.runtime/
 ```
 
 Report the script path and the command the user can run. Do not execute the script or any Docker commands unless the user explicitly asks for execution.
