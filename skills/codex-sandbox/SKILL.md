@@ -51,7 +51,7 @@ If the user wants to proceed without answering, create the script with empty `MO
 5. Make the script executable with `chmod +x <script>`.
 6. Keep paths configurable through environment variables, with safe defaults.
 7. Include `set -euo pipefail`.
-8. If a container with the chosen name already exists, stop and remove it before starting a new one.
+8. Derive the default container name from the target repo directory as `codex-sandox-${REPO_SLUG}`, where `REPO_SLUG` is lowercased, strips a trailing `_forked` or `-forked`, and replaces non-alphanumeric characters with `-`. If a container with the chosen name already exists, stop and remove it before starting a new one.
 9. Build `codex-sandbox:local` using the host UID, GID, and username.
 10. Prepare an SSH directory under `.runtime/.ssh` if SSH keys exist on the host. Copy `id_ed25519`, `id_ed25519.pub`, and `known_hosts` only when present; set strict permissions.
 11. Write the script so that, when the user runs it later, it starts a detached container that sleeps forever and mounts the workspace, SSH directory, optional model/data directories, and any extra mount directories.
@@ -68,9 +68,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+REPO_NAME="$(basename "${PROJECT_DIR}")"
+REPO_SLUG="$(printf '%s' "${REPO_NAME}" | sed -E 's/(_forked|-forked)$//I; s/[^A-Za-z0-9]+/-/g; s/^-+|-+$//g' | tr '[:upper:]' '[:lower:]')"
 
 IMAGE_NAME="${IMAGE_NAME:-codex-sandbox:local}"
-CONTAINER_NAME="${CONTAINER_NAME:-codex-sandbox}"
+CONTAINER_NAME="${CONTAINER_NAME:-codex-sandox-${REPO_SLUG}}"
 USERNAME="${USERNAME:-$(id -un)}"
 CONTAINER_HOME="${CONTAINER_HOME:-/home/${USERNAME}}"
 CONTAINER_WORKDIR="${CONTAINER_WORKDIR:-/workspace}"
