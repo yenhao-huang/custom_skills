@@ -6,6 +6,7 @@ CONTAINER_WORKDIR="${CONTAINER_WORKDIR:-/workspace}"
 CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR:-/models}"
 CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR:-/data}"
 DIND_DOCKER_SOCK="${DIND_DOCKER_SOCK:-/var/run/docker.sock}"
+DIND_DATA_ROOT="${DIND_DATA_ROOT:-${CONTAINER_WORKDIR}/docker-overlay2-data}"
 RESTART_POLICY="${RESTART_POLICY:-unless-stopped}"
 RUN_AGENT_PACKAGE_INIT="${RUN_AGENT_PACKAGE_INIT:-0}"
 
@@ -116,9 +117,10 @@ check_docker() {
     set -euo pipefail
     docker version >/dev/null
     docker info >/dev/null
-    test "$(docker info --format "{{.DockerRootDir}}")" = "/var/lib/docker"
+    test "$(docker info --format "{{.Driver}}")" = "overlay2"
+    test "$(docker info --format "{{.DockerRootDir}}")" = "${DIND_DATA_ROOT}"
   '
-  pass "Docker-in-Docker daemon is ready with internal data root"
+  pass "Docker-in-Docker daemon is ready with overlay2 workspace data root"
 }
 
 check_agent_package() {

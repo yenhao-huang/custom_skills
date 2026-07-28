@@ -19,7 +19,7 @@ DATA_DIR="${DATA_DIR:-}"
 CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR:-/models}"
 CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR:-/data}"
 DIND_DOCKER_SOCK="${DIND_DOCKER_SOCK:-/var/run/docker.sock}"
-DIND_STORAGE_DRIVER="${DIND_STORAGE_DRIVER:-overlay2}"
+DIND_DATA_ROOT="${DIND_DATA_ROOT:-${CONTAINER_WORKDIR}/docker-overlay2-data}"
 EXTRA_MOUNTS="${EXTRA_MOUNTS:-}"
 GPU_DEVICES="${GPU_DEVICES:-all}"
 SSH_PORT="${SSH_PORT:-}"
@@ -73,7 +73,6 @@ fi
 REPO_NAME="$(basename "${WORKSPACE_DIR}")"
 REPO_SLUG="$(printf '%s' "${REPO_NAME}" | sed -E 's/(_forked|-forked)$//I; s/[^A-Za-z0-9]+/-/g; s/^-+|-+$//g' | tr '[:upper:]' '[:lower:]')"
 CONTAINER_NAME="${CONTAINER_NAME:-codex-sandbox-${REPO_SLUG}}"
-DIND_DATA_VOLUME="${DIND_DATA_VOLUME:-${CONTAINER_NAME}-docker-data}"
 
 if [[ "${PREPARE_SSH_DIR}" == "1" && -n "${SSH_DIR}" ]]; then
   mkdir -p "${SSH_DIR}"
@@ -144,13 +143,12 @@ docker_args=(
   --privileged
   -e "HOME=${CONTAINER_HOME}"
   -e "DIND_DOCKER_SOCK=${DIND_DOCKER_SOCK}"
-  -e "DIND_STORAGE_DRIVER=${DIND_STORAGE_DRIVER}"
+  -e "DIND_DATA_ROOT=${DIND_DATA_ROOT}"
   -e "DOCKER_HOST=unix://${DIND_DOCKER_SOCK}"
   -e "DOCKER_TLS_CERTDIR="
   -e "NVIDIA_VISIBLE_DEVICES=${GPU_DEVICES}"
   -e "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
   -v "${WORKSPACE_DIR}:${CONTAINER_WORKDIR}"
-  -v "${DIND_DATA_VOLUME}:/var/lib/docker"
 )
 
 if [[ -n "${SSH_DIR}" ]]; then
@@ -207,7 +205,7 @@ docker "${docker_args[@]}" "${IMAGE_NAME}" bash -lc '
     # Container restarts preserve the writable layer, so a dead dockerd can
     # leave a PID file that points at an unrelated live process after restart.
     sudo rm -f /var/run/docker.pid
-    sudo sh -c "nohup dockerd --host=unix://${DIND_DOCKER_SOCK} --storage-driver=${DIND_STORAGE_DRIVER} >/var/log/dockerd.log 2>&1 &"
+    sudo sh -c "nohup dockerd --host=unix://${DIND_DOCKER_SOCK} --storage-driver=overlay2 --data-root=${DIND_DATA_ROOT} >/var/log/dockerd.log 2>&1 &"
   fi
 
   for attempt in $(seq 1 60); do
@@ -260,6 +258,7 @@ if [[ "${RUN_SERVICE_TESTS}" == "1" ]]; then
   CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR}" \
   CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR}" \
   DIND_DOCKER_SOCK="${DIND_DOCKER_SOCK}" \
+  DIND_DATA_ROOT="${DIND_DATA_ROOT}" \
   RESTART_POLICY="${RESTART_POLICY}" \
   RUN_AGENT_PACKAGE_INIT="${RUN_AGENT_PACKAGE_INIT}" \
     "${TEST_SERVICE_SCRIPT}"
