@@ -18,9 +18,13 @@ placement, agent package settings, or Docker execution behavior.
 - GPU devices: `all` unless explicitly disabled or overridden.
 - Docker daemon: internal Docker-in-Docker daemon at
   `unix:///var/run/docker.sock`.
-- Docker data volume: `codex-sandbox-${REPO_SLUG}-docker-data`, mounted at
-  `/var/lib/docker`.
+- Docker data host directory: `/mnt/share_data_78/howard/docker`, configurable
+  with `DIND_DATA_DIR` and mounted at `/var/lib/docker`.
 - Docker storage driver: `overlay2`.
+- Data mount host directory: `/mnt/share_data_78/howard/data`, mounted at
+  `/data`; explicitly set `DATA_DIR=` to disable it.
+- Model mount host directory: `/mnt/share_data_78/howard/models`, mounted at
+  `/models`; explicitly set `MODEL_DIR=` to disable it.
 
 The sandbox runs with `--privileged` so the internal daemon can manage nested
 containers. Do not mount the host Docker socket; inner Docker bind paths must

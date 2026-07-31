@@ -46,7 +46,7 @@ Do not use this skill when:
 3. Load only the relevant reference files listed below.
 4. Mark the current step `in_progress` in `STATE.md`.
 5. For project-local script generation, sandbox repair, or sandbox run tasks,
-   ask the required mount questions defined in
+   ask the required storage and mount questions defined in
    `references/rules/mounts.md` before writing or running anything unless the
    user's request already provides explicit answers. Do not silently create a
    blank configurable script just because answers are missing.

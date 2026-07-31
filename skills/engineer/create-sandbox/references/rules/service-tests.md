@@ -28,6 +28,8 @@ The service test should verify:
 - SSH key login works when keys are available.
 - The Docker-in-Docker socket exists, the internal daemon responds to
   `docker info`, and its data root is `/var/lib/docker`.
+- `/var/lib/docker` is a mount point backed by the confirmed Docker host
+  directory.
 
 When `RUN_AGENT_PACKAGE_INIT=1`, the service test should verify:
 

@@ -10,14 +10,17 @@ Before writing, updating, or running a sandbox script, ask for:
 - Repo/workspace mount: host path and container path. Default container path
   only after confirmation: `/workspace`.
 - Model mount: host path and container path, or confirmation of no model mount.
-  Default container path only after confirmation: `/models`.
+  Default host path: `/mnt/share_data_78/howard/models`. Default container path
+  only after confirmation: `/models`.
 - SSH mount: host SSH directory or prepared SSH files, or confirmation of no SSH
   mount. Default container path only after confirmation:
   `${CONTAINER_HOME}/.ssh`.
 - Data mount: host path and container path, or confirmation of no data mount.
-  Default container path only after confirmation: `/data`.
-- Docker data: optional named-volume override for `/var/lib/docker`. Default to
-  `codex-sandbox-${REPO_SLUG}-docker-data`.
+  Default host path: `/mnt/share_data_78/howard/data`. Default container path
+  only after confirmation: `/data`.
+- Docker data: host directory for the internal daemon's persistent state.
+  Default host path: `/mnt/share_data_78/howard/docker`. It is bind-mounted at
+  the fixed container data root `/var/lib/docker`.
 - Extra mounts: any additional `host_path:container_path` or
   `host_path:container_path:ro` entries.
 
@@ -28,21 +31,26 @@ mount answers:
 要建立 sandbox 前我需要先確認掛載設定：
 
 1. workspace/repo 要掛哪個 host path？container 內路徑要用 `/workspace` 嗎？
-2. model 要掛嗎？如果要，host path 是什麼？container 內路徑要用 `/models` 嗎？
+2. model 要掛嗎？host path 預設 `/mnt/share_data_78/howard/models`，container 內路徑要用 `/models` 嗎？
 3. SSH 要掛嗎？使用 host `~/.ssh` 複製必要 key 到 `.runtime/.ssh` 可以嗎？
-4. data 要掛嗎？如果要，host path 是什麼？container 內路徑要用 `/data` 嗎？
-5. Docker-in-Docker 資料 volume 要自訂名稱嗎？預設會使用 sandbox 專屬 named volume
+4. data 要掛嗎？host path 預設 `/mnt/share_data_78/howard/data`，container 內路徑要用 `/data` 嗎？
+5. Docker-in-Docker 資料要存在哪個 host path？預設 `/mnt/share_data_78/howard/docker`，container 內固定掛到 `/var/lib/docker`
 6. 還有其他 extra mounts 嗎？格式：`/host/path:/container/path` 或 `/host/path:/container/path:ro`
 ```
+
+When an interactive user-input menu is available, ask the Docker data question
+as its own menu item. Offer `/mnt/share_data_78/howard/docker` as the
+recommended default and allow a free-form custom host path; do not hide this
+choice inside a combined mount summary.
 
 Skills directories are not part of the standard sandbox mount questions and
 should not be mounted unless the user explicitly provides one as an extra
 mount.
 
-If the user asks to proceed without answering, create only a configurable script
-with empty `WORKSPACE_DIR`, `MODEL_DIR`, `SSH_DIR`, `DATA_DIR`, and
-`EXTRA_MOUNTS`; keep the default internal Docker daemon and named data volume;
-and make the script fail until `WORKSPACE_DIR` is set.
+If the user asks to proceed without answering, create only a configurable
+script with empty `WORKSPACE_DIR`, `SSH_DIR`, and `EXTRA_MOUNTS`; use the
+documented default `MODEL_DIR`, `DATA_DIR`, and `DIND_DATA_DIR`; and make the
+script fail until `WORKSPACE_DIR` is set.
 
 ## Path Rules
 
@@ -62,7 +70,8 @@ and make the script fail until `WORKSPACE_DIR` is set.
 - Check that model, SSH, data, and extra mount host paths are readable and
   executable/searchable; also check writability for every read-write mount.
 - Do not bind-mount the host Docker socket. Run the sandbox with `--privileged`
-  and mount `DIND_DATA_VOLUME` at `/var/lib/docker` for the internal daemon.
+  and bind-mount the confirmed `DIND_DATA_DIR` at `/var/lib/docker` for the
+  internal daemon.
 - Keep `DIND_DOCKER_SOCK` inside the sandbox; default it to
   `/var/run/docker.sock` and set `DOCKER_HOST` to that internal Unix socket.
 - If a path is missing, ask a correction question in this form:
@@ -73,6 +82,19 @@ and make the script fail until `WORKSPACE_DIR` is set.
   confirmation.
 - Generated scripts must fail fast with clear errors for missing paths or
   insufficient mount permissions.
+
+## Existing Docker State Migration
+
+Changing `DIND_DATA_DIR` for an existing sandbox is a migration, not a live
+configuration edit:
+
+- Stop the sandbox and its internal Docker daemon before copying state.
+- Confirm the destination filesystem supports `overlay2`.
+- Copy the complete current Docker data root while the daemon is stopped.
+- Start the sandbox with the new bind mount and verify the storage driver,
+  Docker root directory, images, containers, and volumes before removing the
+  old copy.
+- Never point two running Docker daemons at the same `DIND_DATA_DIR`.
 
 ## SSH Rules
 

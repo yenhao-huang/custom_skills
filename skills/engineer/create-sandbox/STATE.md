@@ -3,17 +3,17 @@
 This file is per-run working state. Copy it to `STATE.md` before starting a new
 execution.
 
-Run ID: 20260718-create-sandbox-persist-push
-Instance: C:\tmp\mcp-skills-package-push-20260718\skills\engineer\create-sandbox
-Started: 2026-07-18T10:27:48Z
-Scope: Port the verified stale DinD PID, restart-policy, and SSH authorized-key fixes into the tracked skill and push them.
+Run ID: 20260731-storage-path-menu
+Instance: /tmp2/howard/PRetrieval/mcp-skills-package/skills/engineer/create-sandbox
+Started: 2026-07-31T01:37:31Z
+Scope: Ask where Docker data should be stored and default Docker, data, and model host paths to the shared-data filesystem.
 
-Last updated: 2026-07-18T10:30:50Z
+Last updated: 2026-07-31T01:48:00Z
 
 | Step | Status | Evidence | Notes |
 | --- | --- | --- | --- |
-| 0. Define Scope | completed | User explicitly requested pushing the sandbox fixes verified against `codex-sandbox-agent-workspace`. | Preserve unrelated working-tree changes. |
-| 1. Read Relevant Context | completed | Read repository `AGENTS.md`, skill workflow, lifecycle, mount, environment, service-test, state, and file-tree rules. | Remote rename moved the tracked skill to `skills/engineer/create-sandbox`. |
-| 2. Execute Workflow | completed | Added `unless-stopped`, stale `/var/run/docker.pid` cleanup, readiness-marker reset, current SSH public-key authorization, and restart-policy service validation. | Only tracked create-sandbox files were changed. |
-| 3. Validate Result | completed | `bash -n` passed for all three shell scripts; generic quick validation passed with UTF-8 mode; `git diff --check` passed. | Live equivalent behavior was verified before upstream port: restart recovery, DinD, and SSH key login all passed. |
-| 4. Handoff Summary | in_progress | Focused commit and push to `origin/main` pending. | Existing unrelated working-tree changes remain unstaged. |
+| 0. Define Scope | completed | User specified `/mnt/share_data_78/howard/docker`, `/mnt/share_data_78/howard/data`, and `/mnt/share_data_78/howard/models` as defaults. | Docker data must no longer default under the workspace mount. |
+| 1. Read Relevant Context | completed | Read SKILL.md, mount/lifecycle/environment/service-test/filetree/state rules, and `src/build_and_exec.sh` plus `src/test_service.sh`. | Current daemon root is `${CONTAINER_WORKDIR}/docker-overlay2-data` despite separate named-volume documentation. |
+| 2. Execute Workflow | completed | Added `DIND_DATA_DIR`, bind-mounted it at `/var/lib/docker`, set the three requested host defaults, updated the storage prompt and rules, and added service validation plus stopped-daemon migration guards. | Existing state is not migrated or deleted by this skill update. |
+| 3. Validate Result | completed | `bash -n` passed for all three scripts; generic skill validation, exact default/bind assertions, required-layout inspection, shared-path permission checks, and `git diff --check` passed. | Docker was not executed. |
+| 4. Handoff Summary | completed | Handoff reports the storage menu/defaults, `/var/lib/docker` bind behavior, validation, stopped-daemon migration guard, and focused local commit. | No existing Docker state was moved or deleted; no push is authorized. |

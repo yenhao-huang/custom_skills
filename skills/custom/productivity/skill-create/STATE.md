@@ -1,16 +1,16 @@
 # Create Skill State
 
-Run ID: import-frontend-design-skills-20260717T052435Z
-Instance: /workspace/mcp-skills-package/skills/custom/productivity/skill-create
-Started: 2026-07-17T05:24:35Z
-Scope: Import and adapt ui-ux-pro-max and design-system, then make find-skills search a managed skill-library registry before fallback discovery.
+Run ID: 20260731-create-sandbox-storage-defaults
+Instance: /tmp2/howard/PRetrieval/mcp-skills-package/skills/custom/productivity/skill-create
+Started: 2026-07-31T01:37:31Z
+Scope: Update create-sandbox so its user questions and generated script use explicit Docker, data, and model host storage defaults.
 
-Last updated: 2026-07-17T05:55:00Z
+Last updated: 2026-07-31T01:48:00Z
 
 | Step | Status | Evidence | Notes |
 | --- | --- | --- | --- |
-| 0. Define Scope | completed | User explicitly selected `ui-ux-pro-max` and `design-system`, requested a subagent, and named `mcp-skills-package`. | Target repository resolved to `/workspace/mcp-skills-package`; no global install. |
-| 1. Read Relevant Context | completed | Read repository `AGENTS.md`, actual categorized `skill-create` workflow, required category/filetree/env/state references, current Git status, and upstream candidate metadata. | `AGENTS.md` contains a stale path; actual workflow is `skills/custom/productivity/skill-create/SKILL.md`. Existing untracked `skills/code-review-skill/` is out of scope. |
-| 2. Execute Workflow | completed | Added `skills/engineer/design-system`, imported the offline `skills/engineer/ui-ux-pro-max` toolkit, and updated `skills/custom/productivity/find-skills` with a managed registry rooted at `references/skill-registry.md`. | Both frontend skills use the approved `engineer` category; find-skills remains in `custom/productivity`. README entries were updated. |
-| 3. Validate Result | completed | Generic validation passed for all three skills in isolated PyYAML environments; UI search smoke tests passed; 3 Python scripts parsed; 23 CSV files with 1,338 rows parsed; registry manifest/path and six-result `frontend design` query passed; required layouts, state templates, references, provenance, LF normalization, whitespace, and generated-file checks passed. | System Python was not modified. Existing untracked `skills/code-review-skill/` remained out of scope. |
-| 4. Handoff Summary | completed | Final handoff reports imported workflows, registry-first discovery behavior, provenance/license caveats, validation evidence, and the focused local commit. | No push is authorized or performed. |
+| 0. Define Scope | completed | User provided the exact Docker, data, and model default host paths and requested a Docker storage question in the user menu. | Target is the tracked `skills/engineer/create-sandbox` skill. |
+| 1. Read Relevant Context | completed | Read repository `AGENTS.md`, this workflow, category/filetree/env/state rules, target skill workflow and state, mount/lifecycle/environment/service-test rules, and both shell scripts. | Existing target category is preserved; no files are added or moved. |
+| 2. Execute Workflow | completed | Updated create-sandbox defaults, bind-mount assembly, service-test inputs, storage question, environment/lifecycle/service-test rules, and stopped-daemon migration guard. | Docker now defaults to a host directory mounted at `/var/lib/docker`; data and models use the requested shared-data defaults. |
+| 3. Validate Result | completed | `bash -n`, generic `quick_validate.py`, exact storage-default/bind assertions, required-layout checks, path permission checks, and `git diff --check` all passed. | The three requested default directories exist and are readable, writable, and searchable. |
+| 4. Handoff Summary | completed | Handoff records changed skill files, validation evidence, no Docker execution, migration risk, and the focused local commit. | No push is authorized or performed. |

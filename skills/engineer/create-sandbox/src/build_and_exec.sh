@@ -14,12 +14,13 @@ BUILD_CONTEXT="${BUILD_CONTEXT:-${SCRIPT_DIR}}"
 WORKSPACE_DIR="${WORKSPACE_DIR:-}"
 HOST_SSH_DIR="${HOST_SSH_DIR:-${HOME}/.ssh}"
 SSH_DIR="${SSH_DIR:-${SCRIPT_DIR}/.ssh}"
-MODEL_DIR="${MODEL_DIR:-}"
-DATA_DIR="${DATA_DIR:-}"
+MODEL_DIR="${MODEL_DIR-/mnt/share_data_78/howard/models}"
+DATA_DIR="${DATA_DIR-/mnt/share_data_78/howard/data}"
 CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR:-/models}"
 CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR:-/data}"
 DIND_DOCKER_SOCK="${DIND_DOCKER_SOCK:-/var/run/docker.sock}"
-DIND_DATA_ROOT="${DIND_DATA_ROOT:-${CONTAINER_WORKDIR}/docker-overlay2-data}"
+DIND_DATA_DIR="${DIND_DATA_DIR:-/mnt/share_data_78/howard/docker}"
+DIND_DATA_ROOT="${DIND_DATA_ROOT:-/var/lib/docker}"
 EXTRA_MOUNTS="${EXTRA_MOUNTS:-}"
 GPU_DEVICES="${GPU_DEVICES:-all}"
 SSH_PORT="${SSH_PORT:-}"
@@ -64,6 +65,8 @@ fi
 validate_dir "WORKSPACE_DIR" "${WORKSPACE_DIR}" 1
 validate_dir "MODEL_DIR" "${MODEL_DIR}" 1
 validate_dir "DATA_DIR" "${DATA_DIR}" 1
+validate_dir "DIND_DATA_DIR" "${DIND_DATA_DIR}" 1
+DIND_DATA_DIR="$(cd "${DIND_DATA_DIR}" && pwd -P)"
 if [[ "${PREPARE_SSH_DIR}" == "1" ]]; then
   validate_dir "HOST_SSH_DIR" "${HOST_SSH_DIR}" 0
 else
@@ -149,6 +152,7 @@ docker_args=(
   -e "NVIDIA_VISIBLE_DEVICES=${GPU_DEVICES}"
   -e "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
   -v "${WORKSPACE_DIR}:${CONTAINER_WORKDIR}"
+  -v "${DIND_DATA_DIR}:${DIND_DATA_ROOT}"
 )
 
 if [[ -n "${SSH_DIR}" ]]; then
@@ -258,6 +262,7 @@ if [[ "${RUN_SERVICE_TESTS}" == "1" ]]; then
   CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR}" \
   CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR}" \
   DIND_DOCKER_SOCK="${DIND_DOCKER_SOCK}" \
+  DIND_DATA_DIR="${DIND_DATA_DIR}" \
   DIND_DATA_ROOT="${DIND_DATA_ROOT}" \
   RESTART_POLICY="${RESTART_POLICY}" \
   RUN_AGENT_PACKAGE_INIT="${RUN_AGENT_PACKAGE_INIT}" \

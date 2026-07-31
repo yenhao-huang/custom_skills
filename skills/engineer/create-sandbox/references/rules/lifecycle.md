@@ -8,7 +8,9 @@ which work belongs before vs. after container creation.
 - Validate confirmed host paths.
 - Prepare project-local runtime files such as `.runtime/.ssh`.
 - Compute image/container names.
-- Select the persistent Docker-in-Docker data volume.
+- Confirm and validate the persistent Docker-in-Docker host data directory.
+- For an existing sandbox storage change, complete the stopped-daemon migration
+  procedure in `mounts.md` before switching the bind mount.
 - Verify `src/Dockerfile`, `src/build_and_exec.sh`,
   `src/after_create_container.sh`, and `src/test_service.sh` exist.
 - Build the Docker image.
@@ -27,9 +29,9 @@ which work belongs before vs. after container creation.
 - Keep the container alive with `sleep infinity`.
 
 The outer sandbox container runs with `--privileged`; it must not bind-mount
-the host Docker socket. The internal daemon stores its state in a named volume
-mounted at `/var/lib/docker`, so bind-mount source paths used by inner
-containers resolve in the sandbox filesystem.
+the host Docker socket. The internal daemon stores its state in the confirmed
+host directory bind-mounted at `/var/lib/docker`, so bind-mount source paths
+used by inner containers resolve in the sandbox filesystem.
 
 ## After Create-Container
 

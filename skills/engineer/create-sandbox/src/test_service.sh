@@ -6,7 +6,8 @@ CONTAINER_WORKDIR="${CONTAINER_WORKDIR:-/workspace}"
 CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR:-/models}"
 CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR:-/data}"
 DIND_DOCKER_SOCK="${DIND_DOCKER_SOCK:-/var/run/docker.sock}"
-DIND_DATA_ROOT="${DIND_DATA_ROOT:-${CONTAINER_WORKDIR}/docker-overlay2-data}"
+DIND_DATA_DIR="${DIND_DATA_DIR:-/mnt/share_data_78/howard/docker}"
+DIND_DATA_ROOT="${DIND_DATA_ROOT:-/var/lib/docker}"
 RESTART_POLICY="${RESTART_POLICY:-unless-stopped}"
 RUN_AGENT_PACKAGE_INIT="${RUN_AGENT_PACKAGE_INIT:-0}"
 
@@ -108,6 +109,8 @@ check_ssh() {
 }
 
 check_docker() {
+  local actual_data_source
+
   if ! docker exec "${CONTAINER_NAME}" test -S "${DIND_DOCKER_SOCK}"; then
     echo "Docker-in-Docker socket is not present: ${DIND_DOCKER_SOCK}" >&2
     exit 1
@@ -120,7 +123,18 @@ check_docker() {
     test "$(docker info --format "{{.Driver}}")" = "overlay2"
     test "$(docker info --format "{{.DockerRootDir}}")" = "${DIND_DATA_ROOT}"
   '
-  pass "Docker-in-Docker daemon is ready with overlay2 workspace data root"
+
+  actual_data_source="$(
+    docker inspect -f \
+      "{{range .Mounts}}{{if eq .Destination \"${DIND_DATA_ROOT}\"}}{{.Source}}{{end}}{{end}}" \
+      "${CONTAINER_NAME}"
+  )"
+  if [[ "${actual_data_source}" != "${DIND_DATA_DIR}" ]]; then
+    echo "Unexpected Docker data mount: expected=${DIND_DATA_DIR} actual=${actual_data_source}" >&2
+    exit 1
+  fi
+
+  pass "Docker-in-Docker daemon is ready with overlay2 data at ${DIND_DATA_DIR}"
 }
 
 check_agent_package() {
