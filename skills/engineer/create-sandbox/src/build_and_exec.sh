@@ -1,0 +1,298 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+IMAGE_NAME="${IMAGE_NAME:-codex-sandbox:local}"
+USERNAME="${USERNAME:-$(id -un)}"
+HOST_GROUP_IDS="${HOST_GROUP_IDS:-$(id -G)}"
+CONTAINER_HOME="${CONTAINER_HOME:-/home/${USERNAME}}"
+CONTAINER_WORKDIR="${CONTAINER_WORKDIR:-/workspace}"
+CONTAINER_SSH_STAGING_DIR="${CONTAINER_SSH_STAGING_DIR:-/tmp/codex-sandbox-ssh}"
+BUILD_CONTEXT="${BUILD_CONTEXT:-${SCRIPT_DIR}}"
+WORKSPACE_DIR="${WORKSPACE_DIR:-}"
+HOST_SSH_DIR="${HOST_SSH_DIR:-${HOME}/.ssh}"
+SSH_DIR="${SSH_DIR:-${SCRIPT_DIR}/.ssh}"
+MODEL_DIR="${MODEL_DIR-/mnt/share_data_78/howard/models}"
+DATA_DIR="${DATA_DIR-/mnt/share_data_78/howard/data}"
+CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR:-/models}"
+CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR:-/data}"
+DIND_DOCKER_SOCK="${DIND_DOCKER_SOCK:-/var/run/docker.sock}"
+DIND_DATA_DIR="${DIND_DATA_DIR:-/mnt/share_data_78/howard/docker}"
+DIND_DATA_ROOT="${DIND_DATA_ROOT:-/var/lib/docker}"
+ENABLE_HOST_DOCKER="${ENABLE_HOST_DOCKER:-0}"
+HOST_DOCKER_SOCK="${HOST_DOCKER_SOCK:-/var/run/docker.sock}"
+CONTAINER_HOST_DOCKER_SOCK="${CONTAINER_HOST_DOCKER_SOCK:-/var/run/host-docker.sock}"
+EXTRA_MOUNTS="${EXTRA_MOUNTS:-}"
+GPU_DEVICES="${GPU_DEVICES:-all}"
+SSH_PORT="${SSH_PORT:-}"
+RESTART_POLICY="${RESTART_POLICY:-unless-stopped}"
+PREPARE_SSH_DIR="${PREPARE_SSH_DIR:-1}"
+RUN_SERVICE_TESTS="${RUN_SERVICE_TESTS:-1}"
+ENTER_CONTAINER="${ENTER_CONTAINER:-1}"
+AFTER_CREATE_CONTAINER_SCRIPT="${AFTER_CREATE_CONTAINER_SCRIPT:-${BUILD_CONTEXT}/after_create_container.sh}"
+TEST_SERVICE_SCRIPT="${TEST_SERVICE_SCRIPT:-${BUILD_CONTEXT}/test_service.sh}"
+RUN_AGENT_PACKAGE_INIT="${RUN_AGENT_PACKAGE_INIT:-1}"
+AGENT_PACKAGE_REPO="${AGENT_PACKAGE_REPO:-git@github.com:yenhao-huang/mcp-skills-package.git}"
+AGENT_PACKAGE_DIRNAME="${AGENT_PACKAGE_DIRNAME:-mcp-skills-package}"
+AGENT_PACKAGE_REF="${AGENT_PACKAGE_REF:-}"
+
+validate_dir() {
+  local label="$1"
+  local path="$2"
+  local require_write="$3"
+
+  if [[ -z "${path}" ]]; then
+    return
+  fi
+  if [[ ! -d "${path}" ]]; then
+    echo "${label} must be an existing directory: ${path}" >&2
+    exit 1
+  fi
+  if [[ ! -r "${path}" || ! -x "${path}" ]]; then
+    echo "${label} must be readable and executable/searchable by the current user: ${path}" >&2
+    exit 1
+  fi
+  if [[ "${require_write}" == "1" && ! -w "${path}" ]]; then
+    echo "${label} must be writable by the current user: ${path}" >&2
+    exit 1
+  fi
+}
+
+if [[ -z "${WORKSPACE_DIR}" ]]; then
+  echo "WORKSPACE_DIR must be set to the confirmed repo/workspace host path." >&2
+  exit 1
+fi
+
+validate_dir "WORKSPACE_DIR" "${WORKSPACE_DIR}" 1
+validate_dir "MODEL_DIR" "${MODEL_DIR}" 1
+validate_dir "DATA_DIR" "${DATA_DIR}" 1
+validate_dir "DIND_DATA_DIR" "${DIND_DATA_DIR}" 1
+DIND_DATA_DIR="$(cd "${DIND_DATA_DIR}" && pwd -P)"
+if [[ "${ENABLE_HOST_DOCKER}" != "0" && "${ENABLE_HOST_DOCKER}" != "1" ]]; then
+  echo "ENABLE_HOST_DOCKER must be 0 or 1." >&2
+  exit 1
+fi
+if [[ "${ENABLE_HOST_DOCKER}" == "1" ]]; then
+  if [[ ! -S "${HOST_DOCKER_SOCK}" || ! -r "${HOST_DOCKER_SOCK}" || ! -w "${HOST_DOCKER_SOCK}" ]]; then
+    echo "HOST_DOCKER_SOCK must be a readable and writable socket: ${HOST_DOCKER_SOCK}" >&2
+    exit 1
+  fi
+fi
+if [[ "${PREPARE_SSH_DIR}" == "1" ]]; then
+  validate_dir "HOST_SSH_DIR" "${HOST_SSH_DIR}" 0
+else
+  validate_dir "SSH_DIR" "${SSH_DIR}" 1
+fi
+
+REPO_NAME="$(basename "${WORKSPACE_DIR}")"
+REPO_SLUG="$(printf '%s' "${REPO_NAME}" | sed -E 's/(_forked|-forked)$//I; s/[^A-Za-z0-9]+/-/g; s/^-+|-+$//g' | tr '[:upper:]' '[:lower:]')"
+CONTAINER_NAME="${CONTAINER_NAME:-codex-sandbox-${REPO_SLUG}}"
+
+if [[ "${PREPARE_SSH_DIR}" == "1" && -n "${SSH_DIR}" ]]; then
+  mkdir -p "${SSH_DIR}"
+fi
+
+if [[ ! -f "${BUILD_CONTEXT}/Dockerfile" ]]; then
+  echo "Missing Dockerfile in BUILD_CONTEXT: ${BUILD_CONTEXT}" >&2
+  exit 1
+fi
+if [[ ! -x "${AFTER_CREATE_CONTAINER_SCRIPT}" ]]; then
+  echo "Missing executable after-create-container script: ${AFTER_CREATE_CONTAINER_SCRIPT}" >&2
+  exit 1
+fi
+if [[ "${PREPARE_SSH_DIR}" == "1" && -n "${SSH_DIR}" && -f "${HOST_SSH_DIR}/id_ed25519" ]]; then
+  cp "${HOST_SSH_DIR}/id_ed25519" "${SSH_DIR}/"
+fi
+if [[ "${PREPARE_SSH_DIR}" == "1" && -n "${SSH_DIR}" && -f "${HOST_SSH_DIR}/id_ed25519.pub" ]]; then
+  cp "${HOST_SSH_DIR}/id_ed25519.pub" "${SSH_DIR}/"
+fi
+if [[ "${PREPARE_SSH_DIR}" == "1" && -n "${SSH_DIR}" && -f "${HOST_SSH_DIR}/known_hosts" ]]; then
+  cp "${HOST_SSH_DIR}/known_hosts" "${SSH_DIR}/"
+fi
+if [[ "${PREPARE_SSH_DIR}" == "1" && -n "${SSH_DIR}" && -f "${HOST_SSH_DIR}/authorized_keys" ]]; then
+  cp "${HOST_SSH_DIR}/authorized_keys" "${SSH_DIR}/"
+fi
+if [[ -n "${SSH_DIR}" && -f "${SSH_DIR}/id_ed25519.pub" ]]; then
+  public_key="$(tr -d '\r' < "${SSH_DIR}/id_ed25519.pub")"
+  touch "${SSH_DIR}/authorized_keys"
+  if ! grep -qxF "${public_key}" "${SSH_DIR}/authorized_keys"; then
+    printf '%s\n' "${public_key}" >> "${SSH_DIR}/authorized_keys"
+  fi
+fi
+
+if [[ "${PREPARE_SSH_DIR}" == "1" && -n "${SSH_DIR}" ]]; then
+  chmod 700 "${SSH_DIR}"
+fi
+if [[ "${PREPARE_SSH_DIR}" == "1" && -n "${SSH_DIR}" && -f "${SSH_DIR}/id_ed25519" ]]; then
+  chmod 600 "${SSH_DIR}/id_ed25519"
+fi
+if [[ "${PREPARE_SSH_DIR}" == "1" && -n "${SSH_DIR}" && -f "${SSH_DIR}/id_ed25519.pub" ]]; then
+  chmod 644 "${SSH_DIR}/id_ed25519.pub"
+fi
+if [[ "${PREPARE_SSH_DIR}" == "1" && -n "${SSH_DIR}" && -f "${SSH_DIR}/known_hosts" ]]; then
+  chmod 644 "${SSH_DIR}/known_hosts"
+fi
+if [[ "${PREPARE_SSH_DIR}" == "1" && -n "${SSH_DIR}" && -f "${SSH_DIR}/authorized_keys" ]]; then
+  chmod 600 "${SSH_DIR}/authorized_keys"
+fi
+
+if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+  docker stop "${CONTAINER_NAME}"
+  docker rm "${CONTAINER_NAME}"
+fi
+
+docker build \
+  --build-arg UID="$(id -u)" \
+  --build-arg GID="$(id -g)" \
+  --build-arg USERNAME="${USERNAME}" \
+  --build-arg SUPPLEMENTARY_GIDS="${HOST_GROUP_IDS}" \
+  -t "${IMAGE_NAME}" \
+  "${BUILD_CONTEXT}"
+
+docker_args=(
+  run -d
+  --init
+  --name "${CONTAINER_NAME}"
+  --restart "${RESTART_POLICY}"
+  -w "${CONTAINER_WORKDIR}"
+  --privileged
+  -e "HOME=${CONTAINER_HOME}"
+  -e "DIND_DOCKER_SOCK=${DIND_DOCKER_SOCK}"
+  -e "DIND_DATA_ROOT=${DIND_DATA_ROOT}"
+  -e "DOCKER_HOST=unix://${DIND_DOCKER_SOCK}"
+  -e "DOCKER_TLS_CERTDIR="
+  -e "NVIDIA_VISIBLE_DEVICES=${GPU_DEVICES}"
+  -e "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
+  -v "${WORKSPACE_DIR}:${CONTAINER_WORKDIR}"
+  -v "${DIND_DATA_DIR}:${DIND_DATA_ROOT}"
+)
+
+if [[ -n "${SSH_DIR}" ]]; then
+  docker_args+=(
+    -e "CONTAINER_SSH_STAGING_DIR=${CONTAINER_SSH_STAGING_DIR}"
+    -v "${SSH_DIR}:${CONTAINER_SSH_STAGING_DIR}:ro"
+  )
+fi
+if [[ -n "${SSH_PORT}" ]]; then
+  docker_args+=(-p "${SSH_PORT}:22")
+fi
+if [[ -n "${GPU_DEVICES}" && "${GPU_DEVICES}" != "none" ]]; then
+  docker_args+=(--gpus "${GPU_DEVICES}")
+fi
+
+for group_id in ${HOST_GROUP_IDS}; do
+  docker_args+=(--group-add "${group_id}")
+done
+
+if [[ "${ENABLE_HOST_DOCKER}" == "1" ]]; then
+  docker_args+=(
+    --group-add "$(stat -c '%g' "${HOST_DOCKER_SOCK}")"
+    -v "${HOST_DOCKER_SOCK}:${CONTAINER_HOST_DOCKER_SOCK}"
+  )
+fi
+
+if [[ -n "${MODEL_DIR}" ]]; then
+  docker_args+=(-v "${MODEL_DIR}:${CONTAINER_MODEL_DIR}")
+fi
+if [[ -n "${DATA_DIR}" ]]; then
+  docker_args+=(-v "${DATA_DIR}:${CONTAINER_DATA_DIR}")
+fi
+if [[ -n "${EXTRA_MOUNTS}" ]]; then
+  IFS=',' read -r -a extra_mounts <<< "${EXTRA_MOUNTS}"
+  for mount_spec in "${extra_mounts[@]}"; do
+    if [[ -n "${mount_spec}" ]]; then
+      docker_args+=(-v "${mount_spec}")
+    fi
+  done
+fi
+
+docker "${docker_args[@]}" "${IMAGE_NAME}" bash -lc '
+  set -euo pipefail
+  rm -f /tmp/codex-sandbox-ready
+
+  if [[ -d "${CONTAINER_SSH_STAGING_DIR:-}" ]]; then
+    install -d -m 0700 "${HOME}/.ssh"
+    for ssh_file in id_ed25519 id_ed25519.pub known_hosts authorized_keys; do
+      if [[ -f "${CONTAINER_SSH_STAGING_DIR}/${ssh_file}" ]]; then
+        cp "${CONTAINER_SSH_STAGING_DIR}/${ssh_file}" "${HOME}/.ssh/${ssh_file}"
+      fi
+    done
+    if [[ ! -f "${HOME}/.ssh/authorized_keys" && -f "${HOME}/.ssh/id_ed25519.pub" ]]; then
+      cp "${HOME}/.ssh/id_ed25519.pub" "${HOME}/.ssh/authorized_keys"
+    fi
+    chmod 0600 "${HOME}/.ssh/id_ed25519" "${HOME}/.ssh/authorized_keys" 2>/dev/null || true
+    chmod 0644 "${HOME}/.ssh/id_ed25519.pub" "${HOME}/.ssh/known_hosts" 2>/dev/null || true
+  fi
+
+  sudo /usr/sbin/sshd
+
+  if ! docker info >/dev/null 2>&1; then
+    # Container restarts preserve the writable layer, so a dead dockerd can
+    # leave a PID file that points at an unrelated live process after restart.
+    sudo rm -f /var/run/docker.pid
+    sudo sh -c "nohup dockerd --host=unix://${DIND_DOCKER_SOCK} --storage-driver=overlay2 --data-root=${DIND_DATA_ROOT} >/var/log/dockerd.log 2>&1 &"
+  fi
+
+  for attempt in $(seq 1 60); do
+    if docker info >/dev/null 2>&1; then
+      break
+    fi
+    sleep 1
+  done
+
+  if ! docker info >/dev/null 2>&1; then
+    echo "Docker-in-Docker daemon did not become ready." >&2
+    sudo tail -n 100 /var/log/dockerd.log >&2 || true
+    exit 1
+  fi
+
+  touch /tmp/codex-sandbox-ready
+  exec sleep infinity
+'
+
+for attempt in $(seq 1 70); do
+  if docker exec "${CONTAINER_NAME}" test -f /tmp/codex-sandbox-ready >/dev/null 2>&1; then
+    break
+  fi
+  if [[ "$(docker inspect -f '{{.State.Running}}' "${CONTAINER_NAME}")" != "true" ]]; then
+    echo "Sandbox container exited before Docker-in-Docker and SSH became ready." >&2
+    docker logs "${CONTAINER_NAME}" >&2 || true
+    exit 1
+  fi
+  sleep 1
+done
+
+if ! docker exec "${CONTAINER_NAME}" test -f /tmp/codex-sandbox-ready >/dev/null 2>&1; then
+  echo "Timed out waiting for Docker-in-Docker and SSH readiness." >&2
+  docker logs "${CONTAINER_NAME}" >&2 || true
+  exit 1
+fi
+
+CONTAINER_NAME="${CONTAINER_NAME}" \
+CONTAINER_WORKDIR="${CONTAINER_WORKDIR}" \
+RUN_AGENT_PACKAGE_INIT="${RUN_AGENT_PACKAGE_INIT}" \
+AGENT_PACKAGE_REPO="${AGENT_PACKAGE_REPO}" \
+AGENT_PACKAGE_DIRNAME="${AGENT_PACKAGE_DIRNAME}" \
+AGENT_PACKAGE_REF="${AGENT_PACKAGE_REF}" \
+  "${AFTER_CREATE_CONTAINER_SCRIPT}"
+
+if [[ "${RUN_SERVICE_TESTS}" == "1" ]]; then
+  CONTAINER_NAME="${CONTAINER_NAME}" \
+  CONTAINER_WORKDIR="${CONTAINER_WORKDIR}" \
+  CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR}" \
+  CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR}" \
+  DIND_DOCKER_SOCK="${DIND_DOCKER_SOCK}" \
+  DIND_DATA_DIR="${DIND_DATA_DIR}" \
+  DIND_DATA_ROOT="${DIND_DATA_ROOT}" \
+  ENABLE_HOST_DOCKER="${ENABLE_HOST_DOCKER}" \
+  CONTAINER_HOST_DOCKER_SOCK="${CONTAINER_HOST_DOCKER_SOCK}" \
+  RESTART_POLICY="${RESTART_POLICY}" \
+  RUN_AGENT_PACKAGE_INIT="${RUN_AGENT_PACKAGE_INIT}" \
+    "${TEST_SERVICE_SCRIPT}"
+fi
+
+if [[ "${ENTER_CONTAINER}" == "1" ]]; then
+  docker exec -it "${CONTAINER_NAME}" bash
+fi

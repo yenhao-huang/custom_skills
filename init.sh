@@ -20,7 +20,7 @@ list_skills() {
     return 0
   fi
 
-  find "$skills_dir" -mindepth 2 -maxdepth 2 -name SKILL.md -printf '%P\n' \
+  find "$skills_dir" -mindepth 2 -type f -name SKILL.md -printf '%P\n' \
     | sed 's#/SKILL.md$##' \
     | sort
 }
@@ -34,6 +34,17 @@ list_hooks() {
   fi
 
   find "$hooks_dir" -type f -printf '%P\n' | sort
+}
+
+list_utils() {
+  local target="$1"
+  local utils_dir="$target/utils"
+
+  if [[ ! -d "$utils_dir" ]]; then
+    return 0
+  fi
+
+  find "$utils_dir" -type f -printf '%P\n' | sort
 }
 
 list_package_root_files() {
@@ -58,12 +69,26 @@ print_list() {
   fi
 }
 
+run_python() {
+  if command -v python3 >/dev/null 2>&1; then
+    python3 "$@"
+  elif command -v python >/dev/null 2>&1; then
+    python "$@"
+  elif command -v py >/dev/null 2>&1; then
+    py -3 "$@"
+  else
+    echo "FAIL: 找不到 Python 3，無法合併 .codex/hooks.json。"
+    exit 1
+  fi
+}
+
 snapshot_target() {
   local target="$1"
   local label="$2"
 
   list_skills "$target" > "$tmp_dir/${label}_skills_before"
   list_hooks "$target" > "$tmp_dir/${label}_hooks_before"
+  list_utils "$target" > "$tmp_dir/${label}_utils_before"
   list_package_root_files "$target" > "$tmp_dir/${label}_package_root_before"
 }
 
@@ -86,6 +111,25 @@ install_package_root_files() {
   done
 }
 
+install_git_repo() {
+  local target="$1"
+  local source_git="mcp-skills-package/.git"
+  local target_git="$target/.git"
+
+  if [[ ! -e "$source_git" ]]; then
+    echo "WARN: 找不到 $source_git，略過 $target 的 Git repo 初始化。"
+    return 0
+  fi
+
+  if [[ -e "$target_git" ]]; then
+    echo "INFO: $target_git 已存在，保留既有 Git repo。"
+    return 0
+  fi
+
+  cp -a "$source_git" "$target_git"
+  echo "OK: 已複製 $source_git 到 $target_git，$target 現在可獨立 git pull/push。"
+}
+
 merge_codex_hooks_json() {
   local source_json="mcp-skills-package/hooks.json"
   local target_json=".codex/hooks.json"
@@ -96,7 +140,7 @@ merge_codex_hooks_json() {
     return 0
   fi
 
-  python3 - "$source_json" "$target_json" <<'PY'
+  run_python - "$source_json" "$target_json" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -111,6 +155,24 @@ with target_path.open("r", encoding="utf-8") as fh:
     target = json.load(fh)
 
 target_hooks = target.setdefault("hooks", {})
+
+# Older package versions registered a UserPromptSubmit gate that compared
+# cumulative session usage with a context threshold. Remove only that legacy
+# entry; preserve any unrelated prompt hooks configured by the user.
+prompt_entries = target_hooks.get("UserPromptSubmit", [])
+prompt_entries = [
+    entry
+    for entry in prompt_entries
+    if not any(
+        "check_session_size.py" in str(handler.get("command", ""))
+        for handler in entry.get("hooks", [])
+    )
+]
+if prompt_entries:
+    target_hooks["UserPromptSubmit"] = prompt_entries
+else:
+    target_hooks.pop("UserPromptSubmit", None)
+
 for event, source_entries in source.get("hooks", {}).items():
     target_entries = target_hooks.setdefault(event, [])
     for entry in source_entries:
@@ -129,10 +191,12 @@ report_target() {
 
   list_skills "$target" > "$tmp_dir/${label}_skills_after"
   list_hooks "$target" > "$tmp_dir/${label}_hooks_after"
+  list_utils "$target" > "$tmp_dir/${label}_utils_after"
   list_package_root_files "$target" > "$tmp_dir/${label}_package_root_after"
 
   comm -13 "$tmp_dir/${label}_skills_before" "$tmp_dir/${label}_skills_after" > "$tmp_dir/${label}_skills_added"
   comm -13 "$tmp_dir/${label}_hooks_before" "$tmp_dir/${label}_hooks_after" > "$tmp_dir/${label}_hooks_added"
+  comm -13 "$tmp_dir/${label}_utils_before" "$tmp_dir/${label}_utils_after" > "$tmp_dir/${label}_utils_added"
   comm -13 "$tmp_dir/${label}_package_root_before" "$tmp_dir/${label}_package_root_after" > "$tmp_dir/${label}_package_root_added"
 
   echo
@@ -144,6 +208,11 @@ report_target() {
   echo "[$target] hooks"
   print_list "原有:" "$tmp_dir/${label}_hooks_before"
   print_list "新增:" "$tmp_dir/${label}_hooks_added"
+
+  echo
+  echo "[$target] utils"
+  print_list "原有:" "$tmp_dir/${label}_utils_before"
+  print_list "新增:" "$tmp_dir/${label}_utils_added"
 
   echo
   echo "[$target] package root files"
@@ -165,7 +234,7 @@ verify_package_items_exist() {
       echo "FAIL: $target 缺少 skill: $rel"
       missing=1
     fi
-  done < <(find mcp-skills-package/skills -mindepth 2 -maxdepth 2 -name SKILL.md | sort)
+  done < <(find mcp-skills-package/skills -mindepth 2 -type f -name SKILL.md | sort)
 
   while IFS= read -r source_hook; do
     rel="${source_hook#mcp-skills-package/hooks/}"
@@ -175,11 +244,20 @@ verify_package_items_exist() {
     fi
   done < <(find mcp-skills-package/hooks -type f | sort)
 
+  local source_util
+  while IFS= read -r source_util; do
+    rel="${source_util#mcp-skills-package/utils/}"
+    if [[ ! -f "$target/utils/$rel" ]]; then
+      echo "FAIL: $target 缺少 util: $rel"
+      missing=1
+    fi
+  done < <(find mcp-skills-package/utils -type f | sort)
+
   if [[ "$missing" -ne 0 ]]; then
     exit 1
   fi
 
-  echo "OK: $target 已包含 mcp-skills-package 的所有 skills/hooks。"
+  echo "OK: $target 已包含 mcp-skills-package 的所有 skills/hooks/utils。"
 }
 
 verify_package_root_files_exist() {
@@ -215,9 +293,11 @@ snapshot_target ".claude" "claude"
 
 for target in .codex .claude; do
   mkdir -p "$target"
+  install_git_repo "$target"
   install_package_root_files "$target"
   install_tree_contents "mcp-skills-package/skills" "$target/skills"
   install_tree_contents "mcp-skills-package/hooks" "$target/hooks"
+  install_tree_contents "mcp-skills-package/utils" "$target/utils"
 done
 
 merge_codex_hooks_json
