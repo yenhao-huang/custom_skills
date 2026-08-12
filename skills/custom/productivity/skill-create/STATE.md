@@ -1,16 +1,19 @@
 # Create Skill State
 
-Run ID: 20260731-create-sandbox-storage-defaults
-Instance: /tmp2/howard/PRetrieval/mcp-skills-package/skills/custom/productivity/skill-create
-Started: 2026-07-31T01:37:31Z
-Scope: Update create-sandbox so its user questions and generated script use explicit Docker, data, and model host storage defaults.
+This file is a reusable per-run template. Copy it to `STATE.md` before starting
+a new execution.
 
-Last updated: 2026-07-31T01:48:00Z
+Run ID: 20260812-add-container-init
+Instance: /workspace/mcp-skills-package/skills/custom/productivity/skill-create
+Started: 2026-08-12T07:21:56Z
+Scope: Update the create-sandbox Docker run arguments to enable Docker's init process.
+
+Last updated: 2026-08-12T07:25:00Z
 
 | Step | Status | Evidence | Notes |
 | --- | --- | --- | --- |
-| 0. Define Scope | completed | User provided the exact Docker, data, and model default host paths and requested a Docker storage question in the user menu. | Target is the tracked `skills/engineer/create-sandbox` skill. |
-| 1. Read Relevant Context | completed | Read repository `AGENTS.md`, this workflow, category/filetree/env/state rules, target skill workflow and state, mount/lifecycle/environment/service-test rules, and both shell scripts. | Existing target category is preserved; no files are added or moved. |
-| 2. Execute Workflow | completed | Updated create-sandbox defaults, bind-mount assembly, service-test inputs, storage question, environment/lifecycle/service-test rules, and stopped-daemon migration guard. | Docker now defaults to a host directory mounted at `/var/lib/docker`; data and models use the requested shared-data defaults. |
-| 3. Validate Result | completed | `bash -n`, generic `quick_validate.py`, exact storage-default/bind assertions, required-layout checks, path permission checks, and `git diff --check` all passed. | The three requested default directories exist and are readable, writable, and searchable. |
-| 4. Handoff Summary | completed | Handoff records changed skill files, validation evidence, no Docker execution, migration risk, and the focused local commit. | No push is authorized or performed. |
+| 0. Define Scope | completed | User requested adding `--init` to `skills/engineer/create-sandbox/src/build_and_exec.sh` and pushing the change. | Existing `engineer/create-sandbox` category and file placement are preserved. |
+| 1. Read Relevant Context | completed | Read repository `AGENTS.md`, categorized `skill-create` workflow and rules, target create-sandbox workflow and lifecycle/environment/state rules, dev convention, Git workflow, current status, and upstream changes. | Fast-forwarded local `main` to `origin/main`; unrelated untracked `skills/code-review-skill/` remains out of scope. |
+| 2. Execute Workflow | completed | Added `--init` immediately after `run -d` in `skills/engineer/create-sandbox/src/build_and_exec.sh`. | Required workflow state was reset for this run. |
+| 3. Validate Result | completed | `bash -n` passed for all three create-sandbox shell scripts; generic `quick_validate.py` passed via `/opt/python/bin/python`; exact `--init` assertion, required-layout checks, and `git diff --check` passed. | System `python3` lacked PyYAML, so the existing `/opt/python` environment was used without installing packages. |
+| 4. Handoff Summary | completed | Final handoff will report the focused source change, validation, commit, push, and that Docker was not executed. | User explicitly authorized pushing to `origin/main`. |

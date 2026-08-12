@@ -140,6 +140,7 @@ docker build \
 
 docker_args=(
   run -d
+  --init
   --name "${CONTAINER_NAME}"
   --restart "${RESTART_POLICY}"
   -w "${CONTAINER_WORKDIR}"
