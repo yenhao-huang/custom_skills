@@ -19,13 +19,13 @@ create-sandbox/
 │   │   ├── runtime-mount-permissions.md
 │   │   ├── service-tests.md
 │   │   └── state-rules.md
-│   └── template/
-│       └── STATE.template.md
-└── src/
-    ├── Dockerfile
-    ├── after_create_container.sh
-    ├── build_and_exec.sh
-    └── test_service.sh
+│   ├── template/
+│   │   └── STATE.template.md
+│   └── scripts/
+│       ├── Dockerfile
+│       ├── after_create_container.sh
+│       ├── build_and_exec.sh
+│       └── test_service.sh
 ```
 
 ## Placement Rules
@@ -35,7 +35,8 @@ create-sandbox/
 - `STATE.md`: Per-run working state.
 - `references/rules/`: Detailed operating rules loaded only when relevant.
 - `references/template/`: Copyable templates.
-- `src/`: Deterministic executable templates and scripts used by the workflow.
+- `references/scripts/`: Deterministic executable templates and scripts used by
+  the workflow.
 
 ## Cleanup Rules
 

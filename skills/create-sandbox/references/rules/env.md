@@ -16,6 +16,11 @@ placement, agent package settings, or Docker execution behavior.
 - Container workdir: `/workspace`
 - Container home: `/home/${USERNAME}`
 - GPU devices: `all` unless explicitly disabled or overridden.
+- Docker-in-Docker: enabled by default with `ENABLE_DIND=1`; the outer
+  container runs privileged and starts its own Docker daemon.
+- Host Docker: disabled by default with `ENABLE_HOST_DOCKER=0`; when explicitly
+  enabled, its socket is exposed at `/var/run/host-docker.sock`, separate from
+  the DinD socket.
 
 `REPO_SLUG` is derived from the confirmed repo directory, lowercased, stripped
 of a trailing `_forked` or `-forked`, and normalized to alphanumeric plus
@@ -41,8 +46,8 @@ AGENT_PACKAGE_DIRNAME=mcp-skills-package
 AGENT_PACKAGE_REF=
 ```
 
-Post-create bootstrap belongs in `src/after_create_container.sh`, not inline in
-the main build/run script.
+Post-create bootstrap belongs in `references/scripts/after_create_container.sh`,
+not inline in the main build/run script.
 
 ## Docker Execution Boundary
 

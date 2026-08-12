@@ -8,9 +8,11 @@ which work belongs before vs. after container creation.
 - Validate confirmed host paths.
 - Prepare project-local runtime files such as `.runtime/.ssh`.
 - Compute image/container names.
-- Validate Docker socket access.
-- Verify `src/Dockerfile`, `src/build_and_exec.sh`,
-  `src/after_create_container.sh`, and `src/test_service.sh` exist.
+- Validate host Docker socket access only when explicitly enabled.
+- Verify `references/scripts/Dockerfile`,
+  `references/scripts/build_and_exec.sh`,
+  `references/scripts/after_create_container.sh`, and
+  `references/scripts/test_service.sh` exist.
 - Build the Docker image.
 - Assemble `docker run` arguments.
 
@@ -18,13 +20,15 @@ which work belongs before vs. after container creation.
 
 - Stop/remove the previous same-name container if present.
 - Start the new detached container.
+- When `ENABLE_DIND=1`, run it privileged and start the isolated inner Docker
+  daemon on `/var/run/docker.sock`.
 - Run `sudo /usr/sbin/sshd`.
 - Keep the container alive with `sleep infinity`.
 
 ## After Create-Container
 
-Run `src/after_create_container.sh` against the running container. This phase
-performs workspace-level bootstrap:
+Run `references/scripts/after_create_container.sh` against the running
+container. This phase performs workspace-level bootstrap:
 
 - Confirm the container is running.
 - If `RUN_AGENT_PACKAGE_INIT=1`, clone or update the agent package in
@@ -35,6 +39,7 @@ performs workspace-level bootstrap:
 
 ## After-Create Validation
 
-- Run `src/test_service.sh` after `after_create_container.sh` completes.
+- Run `references/scripts/test_service.sh` after
+  `after_create_container.sh` completes.
 - Enter the container with `docker exec -it "${CONTAINER_NAME}" bash` only after
   service tests finish or are skipped.

@@ -15,15 +15,20 @@ HOST_SSH_DIR="${HOST_SSH_DIR:-${HOME}/.ssh}"
 SSH_DIR="${SSH_DIR:-${SCRIPT_DIR}/.ssh}"
 MODEL_DIR="${MODEL_DIR:-}"
 DATA_DIR="${DATA_DIR:-}"
-DOCKER_SOCK="${DOCKER_SOCK:-/var/run/docker.sock}"
+ENABLE_DIND="${ENABLE_DIND:-1}"
+ENABLE_HOST_DOCKER="${ENABLE_HOST_DOCKER:-0}"
+HOST_DOCKER_SOCK="${HOST_DOCKER_SOCK:-/var/run/docker.sock}"
 CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR:-/models}"
 CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR:-/data}"
 CONTAINER_DOCKER_SOCK="${CONTAINER_DOCKER_SOCK:-/var/run/docker.sock}"
+CONTAINER_HOST_DOCKER_SOCK="${CONTAINER_HOST_DOCKER_SOCK:-/var/run/host-docker.sock}"
+DIND_DATA_ROOT="${DIND_DATA_ROOT:-/var/lib/docker}"
 EXTRA_MOUNTS="${EXTRA_MOUNTS:-}"
 GPU_DEVICES="${GPU_DEVICES:-all}"
 SSH_PORT="${SSH_PORT:-}"
 PREPARE_SSH_DIR="${PREPARE_SSH_DIR:-1}"
 RUN_SERVICE_TESTS="${RUN_SERVICE_TESTS:-1}"
+ENTER_CONTAINER="${ENTER_CONTAINER:-1}"
 AFTER_CREATE_CONTAINER_SCRIPT="${AFTER_CREATE_CONTAINER_SCRIPT:-${BUILD_CONTEXT}/after_create_container.sh}"
 TEST_SERVICE_SCRIPT="${TEST_SERVICE_SCRIPT:-${BUILD_CONTEXT}/test_service.sh}"
 RUN_AGENT_PACKAGE_INIT="${RUN_AGENT_PACKAGE_INIT:-1}"
@@ -83,13 +88,21 @@ if [[ ! -x "${AFTER_CREATE_CONTAINER_SCRIPT}" ]]; then
   echo "Missing executable after-create-container script: ${AFTER_CREATE_CONTAINER_SCRIPT}" >&2
   exit 1
 fi
-if [[ -n "${DOCKER_SOCK}" ]]; then
-  if [[ ! -S "${DOCKER_SOCK}" ]]; then
-    echo "DOCKER_SOCK must point to a Docker socket, or set DOCKER_SOCK='' to disable: ${DOCKER_SOCK}" >&2
+if [[ "${ENABLE_DIND}" != "0" && "${ENABLE_DIND}" != "1" ]]; then
+  echo "ENABLE_DIND must be 0 or 1." >&2
+  exit 1
+fi
+if [[ "${ENABLE_HOST_DOCKER}" != "0" && "${ENABLE_HOST_DOCKER}" != "1" ]]; then
+  echo "ENABLE_HOST_DOCKER must be 0 or 1." >&2
+  exit 1
+fi
+if [[ "${ENABLE_HOST_DOCKER}" == "1" ]]; then
+  if [[ ! -S "${HOST_DOCKER_SOCK}" ]]; then
+    echo "HOST_DOCKER_SOCK must point to the host Docker socket: ${HOST_DOCKER_SOCK}" >&2
     exit 1
   fi
-  if [[ ! -r "${DOCKER_SOCK}" || ! -w "${DOCKER_SOCK}" ]]; then
-    echo "DOCKER_SOCK must be readable and writable by the current user: ${DOCKER_SOCK}" >&2
+  if [[ ! -r "${HOST_DOCKER_SOCK}" || ! -w "${HOST_DOCKER_SOCK}" ]]; then
+    echo "HOST_DOCKER_SOCK must be readable and writable by the current user: ${HOST_DOCKER_SOCK}" >&2
     exit 1
   fi
 fi
@@ -145,8 +158,14 @@ docker_args=(
   -e "HOME=${CONTAINER_HOME}"
   -e "NVIDIA_VISIBLE_DEVICES=${GPU_DEVICES}"
   -e "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
+  -e "ENABLE_DIND=${ENABLE_DIND}"
+  -e "DIND_DATA_ROOT=${DIND_DATA_ROOT}"
   -v "${WORKSPACE_DIR}:${CONTAINER_WORKDIR}"
 )
+
+if [[ "${ENABLE_DIND}" == "1" ]]; then
+  docker_args+=(--privileged)
+fi
 
 if [[ -n "${SSH_DIR}" ]]; then
   docker_args+=(-v "${SSH_DIR}:${CONTAINER_HOME}/.ssh")
@@ -162,11 +181,10 @@ for group_id in ${HOST_GROUP_IDS}; do
   docker_args+=(--group-add "${group_id}")
 done
 
-if [[ -n "${DOCKER_SOCK}" ]]; then
+if [[ "${ENABLE_HOST_DOCKER}" == "1" ]]; then
   docker_args+=(
-    --group-add "$(stat -c '%g' "${DOCKER_SOCK}")"
-    -v "${DOCKER_SOCK}:${CONTAINER_DOCKER_SOCK}"
-    -e "DOCKER_HOST=unix://${CONTAINER_DOCKER_SOCK}"
+    --group-add "$(stat -c '%g' "${HOST_DOCKER_SOCK}")"
+    -v "${HOST_DOCKER_SOCK}:${CONTAINER_HOST_DOCKER_SOCK}"
   )
 fi
 
@@ -185,7 +203,19 @@ if [[ -n "${EXTRA_MOUNTS}" ]]; then
   done
 fi
 
-docker "${docker_args[@]}" "${IMAGE_NAME}" bash -lc "sudo /usr/sbin/sshd && sleep infinity"
+docker "${docker_args[@]}" "${IMAGE_NAME}" bash -lc '
+  set -euo pipefail
+  sudo /usr/sbin/sshd
+  if [[ "${ENABLE_DIND}" == "1" ]]; then
+    sudo dockerd --host=unix:///var/run/docker.sock --group "$(id -gn)" --data-root="${DIND_DATA_ROOT}" >/tmp/dockerd.log 2>&1 &
+    for _ in $(seq 1 30); do
+      docker info >/dev/null 2>&1 && break
+      sleep 1
+    done
+    docker info >/dev/null || { cat /tmp/dockerd.log >&2; exit 1; }
+  fi
+  exec sleep infinity
+'
 
 CONTAINER_NAME="${CONTAINER_NAME}" \
 CONTAINER_WORKDIR="${CONTAINER_WORKDIR}" \
@@ -201,8 +231,13 @@ if [[ "${RUN_SERVICE_TESTS}" == "1" ]]; then
   CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR}" \
   CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR}" \
   CONTAINER_DOCKER_SOCK="${CONTAINER_DOCKER_SOCK}" \
+  CONTAINER_HOST_DOCKER_SOCK="${CONTAINER_HOST_DOCKER_SOCK}" \
+  ENABLE_DIND="${ENABLE_DIND}" \
+  ENABLE_HOST_DOCKER="${ENABLE_HOST_DOCKER}" \
   RUN_AGENT_PACKAGE_INIT="${RUN_AGENT_PACKAGE_INIT}" \
     "${TEST_SERVICE_SCRIPT}"
 fi
 
-docker exec -it "${CONTAINER_NAME}" bash
+if [[ "${ENTER_CONTAINER}" == "1" ]]; then
+  docker exec -it "${CONTAINER_NAME}" bash
+fi

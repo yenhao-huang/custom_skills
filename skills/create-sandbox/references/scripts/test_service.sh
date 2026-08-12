@@ -6,6 +6,9 @@ CONTAINER_WORKDIR="${CONTAINER_WORKDIR:-/workspace}"
 CONTAINER_MODEL_DIR="${CONTAINER_MODEL_DIR:-/models}"
 CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR:-/data}"
 CONTAINER_DOCKER_SOCK="${CONTAINER_DOCKER_SOCK:-/var/run/docker.sock}"
+CONTAINER_HOST_DOCKER_SOCK="${CONTAINER_HOST_DOCKER_SOCK:-/var/run/host-docker.sock}"
+ENABLE_DIND="${ENABLE_DIND:-1}"
+ENABLE_HOST_DOCKER="${ENABLE_HOST_DOCKER:-0}"
 RUN_AGENT_PACKAGE_INIT="${RUN_AGENT_PACKAGE_INIT:-0}"
 
 if [[ -z "${CONTAINER_NAME}" ]]; then
@@ -75,7 +78,11 @@ check_ssh() {
     set -euo pipefail
     ssh -V >/dev/null 2>&1
     sudo /usr/sbin/sshd -t
-    timeout 5 bash -lc "</dev/tcp/127.0.0.1/22"
+    for _ in $(seq 1 15); do
+      timeout 1 bash -lc "</dev/tcp/127.0.0.1/22" && break
+      sleep 1
+    done
+    timeout 1 bash -lc "</dev/tcp/127.0.0.1/22"
 
     if [[ -f "${HOME}/.ssh/id_ed25519" && -f "${HOME}/.ssh/authorized_keys" ]]; then
       ssh -i "${HOME}/.ssh/id_ed25519" \
@@ -96,16 +103,21 @@ check_ssh() {
 }
 
 check_docker() {
-  if ! docker exec "${CONTAINER_NAME}" test -S "${CONTAINER_DOCKER_SOCK}"; then
-    skip "docker socket not present: ${CONTAINER_DOCKER_SOCK}"
-    return
+  if [[ "${ENABLE_DIND}" == "1" ]]; then
+    docker exec "${CONTAINER_NAME}" test -S "${CONTAINER_DOCKER_SOCK}"
+    docker exec "${CONTAINER_NAME}" docker info >/dev/null
+    pass "isolated Docker-in-Docker daemon is available"
+  else
+    skip "Docker-in-Docker disabled"
   fi
 
-  docker exec "${CONTAINER_NAME}" bash -lc '
-    set -euo pipefail
-    docker version >/dev/null
-  '
-  pass "docker CLI can reach daemon"
+  if [[ "${ENABLE_HOST_DOCKER}" == "1" ]]; then
+    docker exec "${CONTAINER_NAME}" test -S "${CONTAINER_HOST_DOCKER_SOCK}"
+    docker exec "${CONTAINER_NAME}" docker -H "unix://${CONTAINER_HOST_DOCKER_SOCK}" info >/dev/null
+    pass "host Docker daemon is available through the opt-in socket"
+  else
+    skip "host Docker disabled"
+  fi
 }
 
 check_agent_package() {

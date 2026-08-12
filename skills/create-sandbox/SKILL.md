@@ -8,15 +8,16 @@ description: >
   "make a sandbox for Claude", sandbox mounts, sandbox SSH, sandbox Docker
   socket access, custom skills/hooks bootstrap, or project-specific sandbox
   setup such as Pretrieval. Create or update a project-local
-  `.runtime/build_codex_sandbox.sh` script from this skill's bundled `src/`
-  files. Do not execute Docker commands unless the user explicitly asks.
+  `.runtime/build_codex_sandbox.sh` script from this skill's bundled
+  `references/scripts/` files. Do not execute Docker commands unless the user
+  explicitly asks.
 ---
 
 # Create Sandbox
 
 Use this skill to create repeatable Codex/Claude Docker sandbox scripts from
-the bundled Docker source in `src/`. Keep `SKILL.md` focused on the workflow;
-load detailed rules from `references/` only when needed.
+the bundled Docker scripts in `references/scripts/`. Keep `SKILL.md` focused
+on the workflow; load detailed rules from `references/` only when needed.
 
 ## When To Use
 
@@ -45,26 +46,32 @@ Do not use this skill when:
    `references/template/STATE.template.md`.
 3. Load only the relevant reference files listed below.
 4. Mark the current step `in_progress` in `STATE.md`.
-5. For project-local script generation, sandbox repair, or sandbox run tasks,
-   ask the required mount questions defined in
-   `references/rules/mounts.md` before writing or running anything unless the
-   user's request already provides explicit answers. Do not silently create a
-   blank configurable script just because answers are missing.
-6. If the user explicitly asks to proceed without answering the mount
+5. For project-local script generation, sandbox repair, validation, or sandbox
+   run tasks, ask the required mount questions defined in
+   `references/rules/mounts.md` before writing, updating, validating, or
+   running anything unless the user's request already provides explicit
+   answers. The repo/workspace host path is a hard gate: if it is not
+   explicitly confirmed by the user, stop and ask for it. Do not infer it from
+   `cwd`, search results, directory listings, existing scripts, previous state,
+   or project names such as "Pretrieval".
+6. Do not silently create or update a blank configurable script just because
+   answers are missing; unresolved workspace confirmation must leave the
+   workflow blocked.
+7. If the user explicitly asks to proceed without answering the mount
    questions, create only a configurable script with empty optional mounts and
    clear fail-fast behavior for missing `WORKSPACE_DIR`, as defined in
    `references/rules/mounts.md`.
-7. Validate every confirmed non-empty host path before writing or running a
+8. Validate every confirmed non-empty host path before writing or running a
    script.
-8. If updating this skill, edit bundled files in `src/`, `references/`, and
-   this `SKILL.md` as needed.
-9. If creating a sandbox for another project, create or update only that
+9. If updating this skill, edit bundled files in `references/scripts/`,
+   `references/`, and this `SKILL.md` as needed.
+10. If creating a sandbox for another project, create or update only that
    project's `.runtime/build_codex_sandbox.sh`, based on
-   `src/build_and_exec.sh`.
-10. Ensure the target project's `.gitignore` contains `.runtime/`.
-11. Validate changed shell scripts with `bash -n`; make generated scripts
+   `references/scripts/build_and_exec.sh`.
+11. Ensure the target project's `.gitignore` contains `.runtime/`.
+12. Validate changed shell scripts with `bash -n`; make generated scripts
     executable with `chmod +x`.
-12. Mark the step `completed`, `blocked`, or `skipped` in `STATE.md` with
+13. Mark the step `completed`, `blocked`, or `skipped` in `STATE.md` with
     evidence.
 
 ## References
@@ -83,12 +90,12 @@ Do not use this skill when:
 - Read `references/rules/state-rules.md` when updating `STATE.md`.
 - Read `references/tools.md` when the user asks about installed tools, common
   utilities, Dockerfile package choices, or network/debug tooling.
-- Use `src/Dockerfile` as the canonical Docker build definition.
-- Use `src/build_and_exec.sh` as the canonical executable template for
+- Use `references/scripts/Dockerfile` as the canonical Docker build definition.
+- Use `references/scripts/build_and_exec.sh` as the canonical executable template for
   generated project-local scripts.
-- Use `src/after_create_container.sh` for post-create bootstrap in the running
-  container.
-- Use `src/test_service.sh` for post-start service checks.
+- Use `references/scripts/after_create_container.sh` for post-create bootstrap
+  in the running container.
+- Use `references/scripts/test_service.sh` for post-start service checks.
 
 ## Environment
 
@@ -110,7 +117,7 @@ Read `references/rules/state-rules.md` for status values and update rules.
 - Keep `SKILL.md` focused on trigger conditions and core workflow.
 - Put detailed sandbox lifecycle, mount, SSH, environment, and validation rules
   in `references/rules/`.
-- Put deterministic executable tooling in `src/`.
+- Put deterministic executable tooling in `references/scripts/`.
 - Load only the reference files needed for the current request.
 
 ## Output

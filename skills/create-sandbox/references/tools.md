@@ -1,6 +1,6 @@
 # Create Sandbox Tooling Reference
 
-Use this reference when updating `src/Dockerfile`, reviewing installed tools, or
+Use this reference when updating `references/scripts/Dockerfile`, reviewing installed tools, or
 deciding which utility belongs in the sandbox image. Tools listed here should be
 installed by the Dockerfile unless explicitly noted as language/runtime tools.
 
