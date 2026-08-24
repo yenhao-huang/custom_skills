@@ -1,16 +1,19 @@
 # Create Skill State
 
-Run ID: 20260824-add-tailscale-in-container
-Instance: /home/howard/mcp-skills-package/skills/custom/productivity/skill-create
-Started: 2026-08-24T11:50:27+08:00
-Scope: Integrate the tailscale-in-container skill, update AGENTS routing, validate it, and prepare linked GitHub issue and PR work.
+This file is a reusable per-run template. Copy it to `STATE.md` before starting
+a new execution.
 
-Last updated: 2026-08-24T11:56:05+08:00
+Run ID: 20260824-skill-workflow-reversibility
+Instance: /workspace/mcp-skills-package/skills/custom/productivity/skill-create
+Started: 2026-08-24T03:59:18Z
+Scope: Require explicit workflows and reversible install validation for created or substantially updated skills.
+
+Last updated: 2026-08-24T04:10:20Z
 
 | Step | Status | Evidence | Notes |
 | --- | --- | --- | --- |
-| 0. Define Scope | completed | User requested adding the new Tailscale container skill to `yenhao-huang/mcp-skills-package`, updating AGENTS.md, and creating an issue and PR. | Metadata uses the valid kebab-case name `tailscale-in-container`. |
-| 1. Read Relevant Context | completed | Read repository AGENTS.md, repo-local skill-create workflow, category/filetree/env/state rules, README catalog, adjacent operations skill, GitHub issue/PR workflows, and commit workflow; duplicate issue search returned none. | AGENTS.md referenced a missing `skills/skill-create/SKILL.md`; routing now targets `skills/custom/productivity/skill-create/SKILL.md`. |
-| 2. Execute Workflow | completed | Created and read back GitHub issue #4; added `skills/operations/tailscale-in-container`, AGENTS routing, and README catalog/tree entries. | The primary GitHub connector returned 403, so the authenticated GitHub MCP server was used successfully. |
-| 3. Validate Result | completed | Generic validator returned `Skill is valid!`; required-layout tests, routing/catalog/content assertions, and `git diff --check` all exited 0. | No Tailscale package installation or daemon startup was needed for static skill validation. |
-| 4. Handoff Summary | completed | Prepared focused feature branch work linked to issue #4 with validation evidence ready for commit and PR. | Commit, push, and PR creation are handled by the repository Git workflows after this state record. |
+| 0. Define Scope | completed | User requested mandatory workflows, paired uninstall guidance, and install → rollback → install validity testing. | Tracking issue #5 created before skill edits. |
+| 1. Read Relevant Context | completed | Read repository `AGENTS.md`, `skill-create/SKILL.md`, and category, filetree, environment, and state rules. | Existing `custom/productivity/skill-create` placement is retained. |
+| 2. Execute Workflow | completed | Updated `AGENTS.md`, `SKILL.md`, `references/rules/filetree.md`, and added `references/rules/workflow.md`. | The broken AGENTS path now points to the actual categorized skill. |
+| 3. Validate Result | completed | Generic `quick_validate.py`, required-layout assertions, workflow/reversibility contract assertions, and `git diff --check` all exited 0. | `skill-create` itself does not install A; lifecycle execution is required for future reversible installation paths. |
+| 4. Handoff Summary | completed | Commit `0353d20` was pushed and PR #7 was created at `https://github.com/yenhao-huang/mcp-skills-package/pull/7`, closing issue #5 on merge. | The repository task remains pending until PR #7 is merged into `main` and the merged state is verified. |
