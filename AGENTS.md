@@ -34,6 +34,18 @@ An open pull request is not completion. If issue or pull-request creation is
 unavailable, or the pull request is still awaiting review, checks, or merge,
 report the exact pending state instead of claiming the skill change is
 complete.
+## Tailscale Container Workflow
+
+When a task involves installing, starting, integrating, diagnosing, stopping,
+or uninstalling Tailscale inside an existing Docker or LXC container, read:
+
+```text
+skills/operations/tailscale-in-container/SKILL.md
+```
+
+Use this workflow for container-to-cluster connectivity, userspace networking,
+`/dev/net/tun` and capability checks, Tailscale Serve or proxy configuration,
+and safe package or identity removal while keeping the host out of the tailnet.
 
 ## Git Commit Workflow
 
