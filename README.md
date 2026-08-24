@@ -39,6 +39,7 @@ bash mcp-skills-package/init-windows.sh 'C:\Users\User\my-project'
 | `solve-issue` | `skills/engineer/solve-issue/SKILL.md` | 從讀取 GitHub issue、實作與測試，到 commit、PR、CI 與 review 的完整問題解決流程。 |
 | `ui-ux-pro-max` | `skills/engineer/ui-ux-pro-max/SKILL.md` | 搜尋可落地的 UI/UX 風格、色彩、排版、元件與技術棧建議。 |
 | `loop-analysis` | `skills/loop-analysis/SKILL.md` | 針對 ESG contest agent-loop runs 產出固定格式的繁中 markdown 分析。 |
+| `lanfuse-install` | `skills/operations/lanfuse-install/SKILL.md` | 以 Docker Compose 安裝、驗證、整合 Hermes 或安全移除本機 Langfuse。 |
 | `mcp-init` | `skills/mcp-init/SKILL.md` | 初始化或修復 Codex MCP 設定，包含 Jina、Firecrawl、Hugging Face、Git MCP。 |
 | `notion` | `skills/notion/SKILL.md` | 管理常用 Notion pages、資料庫、頁面 registry、摘要與更新流程。 |
 | `sandox-tutorial` | `skills/sandox-tutorial/SKILL.md` | 記錄 skill、MCP、AGENTS.md 等安裝與設定筆記。 |
@@ -114,6 +115,7 @@ model_auto_compact_token_limit_scope = "total"
 │   ├── mcp-init/
 │   ├── notion/
 │   ├── operations/
+│   │   ├── lanfuse-install/
 │   │   └── tailscale-in-container/
 │   ├── sandox-tutorial/
 │   ├── set-daily-cron/

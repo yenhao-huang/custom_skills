@@ -47,6 +47,19 @@ Use this workflow for container-to-cluster connectivity, userspace networking,
 `/dev/net/tun` and capability checks, Tailscale Serve or proxy configuration,
 and safe package or identity removal while keeping the host out of the tailnet.
 
+## Langfuse Installation Workflow
+
+When a task involves installing, configuring, validating, integrating,
+reinstalling, or uninstalling a local self-hosted Langfuse deployment, read:
+
+```text
+skills/operations/lanfuse-install/SKILL.md
+```
+
+Use this workflow for Docker Compose deployment, first-run initialization,
+Hermes observability traces, isolated Windows Hermes environments, and safe
+Langfuse container, volume, image, or checkout cleanup.
+
 ## Git Commit Workflow
 
 When a requested implementation task is complete and relevant validation has
