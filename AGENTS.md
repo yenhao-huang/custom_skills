@@ -6,17 +6,34 @@ When a task involves reading, creating, updating, reviewing, validating, or
 documenting any skill under `skills/`, read this file first:
 
 ```text
-skills/skill-create/SKILL.md
+skills/custom/productivity/skill-create/SKILL.md
 ```
 
-Follow the workflow and reference-loading rules in `skills/skill-create/SKILL.md`
-before changing skill files.
+Follow the workflow and reference-loading rules in
+`skills/custom/productivity/skill-create/SKILL.md` before changing skill files.
 
 Use this rule for requests that mention skills, skill directories, `SKILL.md`,
 skill metadata, skill references, skill validation, or skill behavior.
 
 If the task is only to install a skill from an external source, use the
 `skill-installer` workflow instead.
+
+### Skill Change Delivery
+
+Any change under `skills/` must use the following delivery workflow:
+
+1. Create or link a GitHub issue that defines the scope and acceptance
+   criteria before editing the skill.
+2. Make the change on a non-default branch, validate it, and open a pull
+   request linked to the issue. Never push the skill change directly to
+   `main`.
+3. Wait for the pull request to be merged into `main`, then verify that the
+   merged `main` contains the change before reporting the task as complete.
+
+An open pull request is not completion. If issue or pull-request creation is
+unavailable, or the pull request is still awaiting review, checks, or merge,
+report the exact pending state instead of claiming the skill change is
+complete.
 
 ## Git Commit Workflow
 
