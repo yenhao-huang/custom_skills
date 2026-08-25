@@ -13,6 +13,12 @@ Required services: Tailscale coordination service and the user's existing cluste
 
 - Inspect `/etc/os-release`, PID 1, runtime metadata, networking devices, and
   installed commands before choosing a path.
+- Inspect the current execution environment before calling `docker ps`,
+  `podman ps`, or an orchestrator API. A runtime listing describes workloads
+  managed by that runtime; it does not identify the current shell's container.
+- When Docker-in-Docker or a mounted runtime socket is present, distinguish the
+  current container from nested or sibling containers using PID 1, hostname,
+  cgroups, mount namespaces, local command paths, and local Unix sockets.
 - Do not install dependencies globally on the host.
 - Verify time-sensitive install, Serve, and uninstall syntax against official
   Tailscale documentation before mutation.

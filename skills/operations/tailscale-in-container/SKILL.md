@@ -22,26 +22,40 @@ then record concrete evidence as each phase progresses.
 
 ## Workflow
 
-1. Establish whether the target is Docker, Podman, LXC, or Kubernetes and
-   whether it is already running.
-2. Confirm the desired direction: cluster to container, container to cluster,
+1. Resolve the execution boundary before using a container runtime: determine
+   whether the user means the current shell's container, an existing container
+   managed by the current runtime, or a new container. When the user says
+   "this/current environment" or "inside the container," default to the
+   current execution environment and verify it from PID 1, hostname, cgroups,
+   mount namespace, and local filesystem evidence.
+2. Establish whether the target is Docker, Podman, LXC, or Kubernetes and
+   whether it is already running. Treat runtime listings as children managed
+   by that daemon, not as proof about whether the current shell is itself in a
+   container.
+3. Confirm the desired direction: cluster to container, container to cluster,
    or both. Identify only the required protocols and ports.
-3. Inspect the container before mutation: distro, init system, installed
-   binaries, daemon state, `/dev/net/tun`, Linux capabilities, state path, and
-   current Tailscale identity.
-4. For installation, verify the current commands against official Tailscale
+4. Inspect the resolved target container before mutation: distro, init system,
+   installed binaries, daemon state, `/dev/net/tun`, Linux capabilities, state
+   path, and current Tailscale identity.
+5. For installation, verify the current commands against official Tailscale
    documentation, install only inside the container, choose kernel or
    userspace mode, authenticate without exposing secrets, and configure the
    minimum required path.
-5. For removal, first determine whether the user wants a disconnect, package
+6. For removal, first determine whether the user wants a disconnect, package
    uninstall with identity preserved, or complete removal. Treat state deletion
    and tailnet device deletion as separate destructive actions.
-6. Validate the requested traffic path and confirm the host itself was not
+7. Validate the requested traffic path and confirm the host itself was not
    enrolled or exposed.
 
 ## Guardrails
 
 - Do not install or authenticate Tailscale on the host unless explicitly asked.
+- Do not create a Docker or Podman container merely because the runtime is
+  available or its container list is empty. Create one only when the user
+  explicitly requests it or approves that material architecture choice.
+- Do not infer that a visible `tailscaled` PID belongs to the current container
+  when nested containers share PID visibility. Verify the executable, socket,
+  state path, and mount namespace from the resolved target.
 - Do not use host networking for a container-only integration.
 - A running container cannot gain new Docker capabilities or devices. If it
   lacks `/dev/net/tun` or `NET_ADMIN`, use userspace mode or explain that

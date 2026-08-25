@@ -17,6 +17,8 @@ Official references:
 
 Establish all of the following before changing anything:
 
+- Whether the target is the current execution environment, a container managed
+  by an accessible runtime, or a new container that does not yet exist.
 - Container runtime and exact container or pod name.
 - Whether commands run inside the container or through the runtime from the
   host.
@@ -24,6 +26,30 @@ Establish all of the following before changing anything:
 - Required protocol and port for every service.
 - Whether the container may be recreated.
 - Whether Tailscale state must survive a container restart or replacement.
+
+Interpret phrases such as "this container," "current environment," "inside
+Docker," or a shell prompt containing a container hostname as referring to the
+current execution environment unless the user names a different container or
+explicitly requests creation. Confirm that interpretation with local evidence:
+
+```bash
+hostname
+cat /etc/os-release
+ps -p 1 -o pid,comm,args=
+cat /proc/1/cgroup
+readlink /proc/self/ns/mnt
+command -v tailscale || true
+test -S /var/run/tailscale/tailscaled.sock && \
+  ls -l /var/run/tailscale/tailscaled.sock || true
+```
+
+An empty `docker ps` means only that the accessible Docker daemon currently
+manages no containers. It does not mean the current shell is outside a
+container, and it does not authorize creating a standalone Tailscale
+container. With Docker-in-Docker, nested container processes can also be
+visible in the current PID namespace; do not attribute them to the current
+container without verifying their executable, socket, state path, and mount
+namespace.
 
 Container-only means:
 
