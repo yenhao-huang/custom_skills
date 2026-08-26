@@ -13,3 +13,7 @@ Use `STATE.md` as the resumable record for one issue-resolution run.
    remains pending or blocked.
 6. Update evidence after any new change invalidates an earlier test or review.
 7. Do not place secrets, tokens, or sensitive private issue content in state.
+8. When the discussion check finds the issue already resolved, mark step 1
+   `completed` with the comment or PR link as evidence, mark the remaining
+   steps `blocked` with the note "already resolved, bypassed", and do not
+   advance to implementation.
