@@ -1,7 +1,9 @@
 # Create Skill State
 
-This file is a reusable per-run template. Copy it to `STATE.md` before starting
-a new execution.
+Run ID: 20260903-openclaw-cron-migration
+Instance: `skills/custom/productivity/skill-create`
+Started: 2026-09-03T06:08:24Z
+Scope: Register `custom/cron` as the subcategory for migrated personal scheduler workflows.
 
 Run ID: 20260825-tailscale-target-boundary
 Instance: /workspace/mcp-skills-package/skills/operations/tailscale-in-container
