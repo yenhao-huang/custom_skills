@@ -85,11 +85,13 @@ when they make ownership clearer.
 
 Current subcategories:
 
+- `custom/cron`: personal recurring workflows migrated from external schedulers.
 - `custom/productivity`: personal productivity and skill-management helpers.
 - `custom/wingene`: Wingene/internal environment workflows.
 
 Current examples:
 
+- `custom/cron/daily-news-digest`
 - `custom/productivity/skill-create`
 - `custom/productivity/find-skills`
 - `custom/wingene/send-to-vdi`

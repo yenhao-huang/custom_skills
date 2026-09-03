@@ -44,6 +44,15 @@ bash mcp-skills-package/init-windows.sh 'C:\Users\User\my-project'
 | `notion` | `skills/notion/SKILL.md` | 管理常用 Notion pages、資料庫、頁面 registry、摘要與更新流程。 |
 | `sandox-tutorial` | `skills/sandox-tutorial/SKILL.md` | 記錄 skill、MCP、AGENTS.md 等安裝與設定筆記。 |
 | `set-daily-cron` | `skills/set-daily-cron/SKILL.md` | 設定每日 cron tasks；由 `do-cron-tasks.py` 在新 session 時檢查並執行到期任務。 |
+| `daily-news-digest` | `skills/custom/cron/daily-news-digest/SKILL.md` | 每日整理 AI、台股金融與美股新聞，寫入 daily repo 後 commit、push。 |
+| `morning-exercise-reminder` | `skills/custom/cron/morning-exercise-reminder/SKILL.md` | 每日早晨運動與 LeetCode 打卡提醒。 |
+| `daily-tech-blogs-digest` | `skills/custom/cron/daily-tech-blogs-digest/SKILL.md` | 每日整理七個官方科技部落格，容錯寫檔後 commit、push。 |
+| `daily-dart-task-check` | `skills/custom/cron/daily-dart-task-check/SKILL.md` | 透過 Dart MCP 彙整五個指定專案或標籤的今日任務。 |
+| `weekly-huggingface-model-digest` | `skills/custom/cron/weekly-huggingface-model-digest/SKILL.md` | 每週依 likes 排列本月三類 Hugging Face 新模型 Top 5。 |
+| `daily-reuters-ai-digest` | `skills/custom/cron/daily-reuters-ai-digest/SKILL.md` | 每日建立有來源依據的 Reuters AI 繁中摘要。 |
+| `daily-journal-reminder` | `skills/custom/cron/daily-journal-reminder/SKILL.md` | 每晚 19:00 的日記提醒內容。 |
+| `daily-dinner-accounting-reminder` | `skills/custom/cron/daily-dinner-accounting-reminder/SKILL.md` | 每晚 21:00 的晚餐記帳提醒內容。 |
+| `daily-lunch-accounting-reminder` | `skills/custom/cron/daily-lunch-accounting-reminder/SKILL.md` | 每日 13:00 的午餐記帳提醒內容。 |
 | `skill-create` | `skills/skill-create/SKILL.md` | 建立新 Codex skill 時使用的模板與工作流程。 |
 | `tailscale-in-container` | `skills/operations/tailscale-in-container/SKILL.md` | 在既有 container 內安裝、整合、驗證或安全卸載 Tailscale，同時避免宿主機加入 tailnet。 |
 | `vllm-embedding-server` | `skills/vllm-embedding-server/SKILL.md` | 啟動、除錯、驗證本機 vLLM embedding server，特別是 Qwen embedding models。 |
@@ -110,6 +119,17 @@ model_auto_compact_token_limit_scope = "total"
 │   │   ├── github-issues/
 │   │   ├── github-pr-workflow/
 │   │   └── solve-issue/
+│   ├── custom/
+│   │   └── cron/
+│   │       ├── daily-news-digest/
+│   │       ├── daily-tech-blogs-digest/
+│   │       ├── daily-dart-task-check/
+│   │       ├── daily-reuters-ai-digest/
+│   │       ├── daily-journal-reminder/
+│   │       ├── daily-dinner-accounting-reminder/
+│   │       ├── daily-lunch-accounting-reminder/
+│   │       ├── morning-exercise-reminder/
+│   │       └── weekly-huggingface-model-digest/
 │   ├── find-skills/
 │   ├── loop-analysis/
 │   ├── mcp-init/
