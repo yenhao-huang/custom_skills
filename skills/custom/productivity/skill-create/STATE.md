@@ -5,12 +5,17 @@ Instance: `skills/custom/productivity/skill-create`
 Started: 2026-09-03T06:46:07Z
 Scope: Register six purpose-based custom subcategories and migrate 10 selected OpenClaw skills while excluding four user-specified skills.
 
-Last updated: 2026-09-03T06:54:56Z
+Run ID: 20260825-tailscale-target-boundary
+Instance: /workspace/mcp-skills-package/skills/operations/tailscale-in-container
+Started: 2026-08-25T07:30:00Z
+Scope: Prevent confusion between the current container and nested containers managed by an available Docker daemon.
+
+Last updated: 2026-08-25T07:36:00Z
 
 | Step | Status | Evidence | Notes |
 | --- | --- | --- | --- |
-| 0. Define Scope | completed | GitHub issue #15 lists 10 included and 4 explicitly excluded skills. | User requested a PR after classification. |
-| 1. Read Relevant Context | completed | Read repository `AGENTS.md`, system skill-creator, all repository skill-create rules, and every included source skill/resource. | Conflicting model-tester defaults will use the source SKILL.md mandatory 100-item rule. |
-| 2. Execute Workflow | completed | Registered six custom subcategories and created 10 selected skills using the required repository-local layout. | The four user-excluded skills were not added. |
-| 3. Validate Result | completed | Generic validator passed for all 10 new skills and `skill-create`; local layout, category, uniqueness, exclusion, privacy, TODO, and diff checks passed. | No installation lifecycle applies. |
-| 4. Handoff Summary | completed | Commit `275c515` was pushed and PR #16 opened, linked to issue #15. | The repository change remains pending until PR #16 is reviewed and merged. |
+| 0. Define Scope | completed | User requested correcting `tailscale-in-container` and opening a PR; issue #10 defines acceptance criteria. | Existing `operations` placement and layout remain unchanged. |
+| 1. Read Relevant Context | completed | Read repository AGENTS.md, repo-local skill-create workflow and all required references, target SKILL.md, and target required references. | This is a focused target-resolution correction; installation and rollback mechanics are unchanged. |
+| 2. Execute Workflow | completed | Updated target `SKILL.md`, `references/rules/env.md`, and `references/tailscale-container-workflow.md` on branch `fix/10-tailscale-target-boundary`. | Added current-vs-managed-vs-new boundary detection, Docker-in-Docker namespace checks, and a no-implicit-container-creation guardrail. Installation and rollback mechanics were not changed. |
+| 3. Validate Result | completed | Generic `quick_validate.py` returned `Skill is valid!`; required-layout, workflow-heading, targeted content assertions, and `git diff --check` passed. | Existing `operations` placement and required layout remain valid. Install → rollback → install was not repeated because this change does not modify any lifecycle path. |
+| 4. Handoff Summary | in_progress | Issue #10 exists and the focused diff is ready to commit. | PR must reference issue #10; merge and post-merge verification remain pending. |
