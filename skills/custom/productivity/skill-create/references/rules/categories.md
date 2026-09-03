@@ -85,13 +85,25 @@ when they make ownership clearer.
 
 Current subcategories:
 
+- `custom/ai-models`: personal model discovery, download, inference, and evaluation workflows.
+- `custom/apple`: personal Apple-platform projects and tool-selection workflows.
+- `custom/content`: personal content research, generation, and publishing workflows.
 - `custom/cron`: personal recurring workflows migrated from external schedulers.
+- `custom/finance`: personal finance analysis and knowledge-management workflows.
+- `custom/notion`: personal Notion publishing and structured-update workflows.
+- `custom/personal`: personal daily routines and accountability workflows.
 - `custom/productivity`: personal productivity and skill-management helpers.
 - `custom/wingene`: Wingene/internal environment workflows.
 
 Current examples:
 
+- `custom/ai-models/model-tester`
+- `custom/apple/ios-swiftui-mcp`
+- `custom/content/daily-news-ops`
 - `custom/cron/daily-news-digest`
+- `custom/finance/financial-report-analysis`
+- `custom/notion/notion-mcp-ops`
+- `custom/personal/daily-checkin-assistant`
 - `custom/productivity/skill-create`
 - `custom/productivity/find-skills`
 - `custom/wingene/send-to-vdi`
