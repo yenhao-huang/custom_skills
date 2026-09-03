@@ -1,9 +1,9 @@
 # Create Skill State
 
-Run ID: 20260903-openclaw-cron-migration
+Run ID: 20260903-selected-openclaw-skills
 Instance: `skills/custom/productivity/skill-create`
-Started: 2026-09-03T06:08:24Z
-Scope: Register `custom/cron` as the subcategory for migrated personal scheduler workflows.
+Started: 2026-09-03T06:46:07Z
+Scope: Register six purpose-based custom subcategories and migrate 10 selected OpenClaw skills while excluding four user-specified skills.
 
 Run ID: 20260825-tailscale-target-boundary
 Instance: /workspace/mcp-skills-package/skills/operations/tailscale-in-container

@@ -53,6 +53,16 @@ bash mcp-skills-package/init-windows.sh 'C:\Users\User\my-project'
 | `daily-journal-reminder` | `skills/custom/cron/daily-journal-reminder/SKILL.md` | 每晚 19:00 的日記提醒內容。 |
 | `daily-dinner-accounting-reminder` | `skills/custom/cron/daily-dinner-accounting-reminder/SKILL.md` | 每晚 21:00 的晚餐記帳提醒內容。 |
 | `daily-lunch-accounting-reminder` | `skills/custom/cron/daily-lunch-accounting-reminder/SKILL.md` | 每日 13:00 的午餐記帳提醒內容。 |
+| `download-models` | `skills/custom/ai-models/download-models/SKILL.md` | 透過既有 HF CLI 環境與 tmux 下載並驗證本機模型。 |
+| `huggingface` | `skills/custom/ai-models/huggingface/SKILL.md` | 搜尋、推論、發布及除錯 Hugging Face 模型、資料集與 Spaces。 |
+| `model-tester` | `skills/custom/ai-models/model-tester/SKILL.md` | 執行可重現的文字、架構、視覺與速度模型評測。 |
+| `ios-swiftui-mcp` | `skills/custom/apple/ios-swiftui-mcp/SKILL.md` | 選擇 iOS／SwiftUI MCP 工具及支援個人圖片檢索專案。 |
+| `daily-news-ops` | `skills/custom/content/daily-news-ops/SKILL.md` | 協調每日新聞與科技部落格摘要的產出及發布。 |
+| `financial-report-analysis` | `skills/custom/finance/financial-report-analysis/SKILL.md` | 以多年實際數字、公式與來源分析公司財報並發布報告。 |
+| `finance-glossary` | `skills/custom/finance/finance-glossary/SKILL.md` | 維護並發布個人繁中財務專有名詞表。 |
+| `notion-mcp-ops` | `skills/custom/notion/notion-mcp-ops/SKILL.md` | 透過已連線的 Notion 工具安全讀寫及驗證頁面。 |
+| `notion-daily-learning` | `skills/custom/notion/notion-daily-learning/SKILL.md` | 將英文學習內容追加到 Notion 當日 MMDD 小節。 |
+| `daily-checkin-assistant` | `skills/custom/personal/daily-checkin-assistant/SKILL.md` | 整合今日任務、LeetCode 選題與習慣打卡。 |
 | `skill-create` | `skills/skill-create/SKILL.md` | 建立新 Codex skill 時使用的模板與工作流程。 |
 | `tailscale-in-container` | `skills/operations/tailscale-in-container/SKILL.md` | 在既有 container 內安裝、整合、驗證或安全卸載 Tailscale，同時避免宿主機加入 tailnet。 |
 | `vllm-embedding-server` | `skills/vllm-embedding-server/SKILL.md` | 啟動、除錯、驗證本機 vLLM embedding server，特別是 Qwen embedding models。 |
@@ -120,16 +130,34 @@ model_auto_compact_token_limit_scope = "total"
 │   │   ├── github-pr-workflow/
 │   │   └── solve-issue/
 │   ├── custom/
-│   │   └── cron/
-│   │       ├── daily-news-digest/
-│   │       ├── daily-tech-blogs-digest/
-│   │       ├── daily-dart-task-check/
-│   │       ├── daily-reuters-ai-digest/
-│   │       ├── daily-journal-reminder/
-│   │       ├── daily-dinner-accounting-reminder/
-│   │       ├── daily-lunch-accounting-reminder/
-│   │       ├── morning-exercise-reminder/
-│   │       └── weekly-huggingface-model-digest/
+│   │   ├── ai-models/
+│   │   │   ├── download-models/
+│   │   │   ├── huggingface/
+│   │   │   └── model-tester/
+│   │   ├── apple/
+│   │   │   └── ios-swiftui-mcp/
+│   │   ├── content/
+│   │   │   └── daily-news-ops/
+│   │   ├── cron/
+│   │   │   ├── daily-news-digest/
+│   │   │   ├── daily-tech-blogs-digest/
+│   │   │   ├── daily-dart-task-check/
+│   │   │   ├── daily-reuters-ai-digest/
+│   │   │   ├── daily-journal-reminder/
+│   │   │   ├── daily-dinner-accounting-reminder/
+│   │   │   ├── daily-lunch-accounting-reminder/
+│   │   │   ├── morning-exercise-reminder/
+│   │   │   └── weekly-huggingface-model-digest/
+│   │   ├── finance/
+│   │   │   ├── finance-glossary/
+│   │   │   └── financial-report-analysis/
+│   │   ├── notion/
+│   │   │   ├── notion-daily-learning/
+│   │   │   └── notion-mcp-ops/
+│   │   ├── personal/
+│   │   │   └── daily-checkin-assistant/
+│   │   ├── productivity/
+│   │   └── wingene/
 │   ├── find-skills/
 │   ├── loop-analysis/
 │   ├── mcp-init/
