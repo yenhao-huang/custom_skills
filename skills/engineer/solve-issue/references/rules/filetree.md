@@ -16,6 +16,7 @@ skills/engineer/solve-issue/
 ├── SKILL.md
 ├── STATE.md
 └── references/
+    ├── report_template.md
     ├── LICENSE.txt
     ├── rules/
     │   ├── env.md

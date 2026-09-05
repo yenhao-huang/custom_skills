@@ -10,6 +10,15 @@ Resolve one GitHub issue through a verified pull request. Treat the issue
 number or URL supplied by the user as the target; if none is supplied, identify
 the issue from the current conversation or ask the user before changing code.
 
+## Notes
+
+1. Only send pull requests to the user's designated private repository, never
+   to the upstream/public community repository (社群 repo). For example, use
+   `https://github.com/yenhao-huang/TensorRT` as the private PR target; do not
+   send PRs to `https://github.com/nvidia/tensorrt`. Verify the destination
+   before creating or retargeting a PR; do not infer it from the issue URL or
+   GitHub's default upstream selection.
+
 ## Workflow
 
 1. Read `STATE.md`, reset it from `references/template/STATE.template.md` for
@@ -35,28 +44,45 @@ the issue from the current conversation or ask the user before changing code.
      different issue.
    - If not resolved, continue to implementation — but reuse the reporter's
      workaround or diagnosis as a starting point when it points to the fix.
-5. Read the repository instructions and use `dev` to investigate, implement,
-   and test the smallest complete change that satisfies the issue.
-6. Push the branch to the user's own fork or internal repository (e.g.
-   `yenhao-huang/TensorRT-LLM`) for validation. This push is always allowed —
-   it is private-equivalent scratch work, not a community-facing action.
-7. Stop and ask the user for explicit, per-issue go-ahead before using
-   `github-pr-workflow` to open a pull request against the upstream/community
-   repository. Publishing to the community is a separate decision from
-   solving the issue: report that the fix is implemented, committed, pushed
-   to the user's own fork, and validated, then wait for confirmation before
-   opening the PR. Do not open the PR on the strength of an earlier blanket
-   "proceed autonomously" instruction, a prior run's approval, or a `/loop`
-   or similar automation request — none of those constitute consent for
-   *this* issue's PR. Only proceed without asking again if the user's
-   instruction for this run explicitly names opening/publishing the PR itself
-   (not just solving the issue) as pre-authorized.
-8. Once the user confirms, use `github-pr-workflow` to open the pull request
-   that links the issue and reports validation evidence.
-9. Monitor CI and review feedback, address failures or actionable comments,
+4. Read the repository instructions and
+   [references/report_template.md](references/report_template.md). Create an
+   issue report at the repository's established report location (for example,
+   `docs/howard/<issue-number>.md`) and record its path in `STATE.md`. Before
+   implementation, organize acceptance criteria from the issue and discussion:
+   give each criterion an ID, expected behavior, verification method, and
+   required evidence. Then use `dev` with these ordered development substeps:
+
+   1. **reproduce**: Run the smallest reproducer on the unmodified baseline.
+      Record the commit, environment, exact command, expected versus actual
+      behavior, exit code, and relevant output. If reproduction is blocked or
+      unsuccessful, record the limitation and investigate before claiming a
+      reproduced bug; never invent baseline evidence.
+   2. **dev**: Diagnose the root cause and implement the smallest complete fix.
+      Explain the changed behavior and map the changes to acceptance criteria
+      in the report. Review the diff and resolve actionable findings.
+   3. **regression test**: Add or update a focused regression test for the
+      original failure and run it against both baseline and fixed code where
+      feasible, recording failure before and success after. Rerun the original
+      reproducer on the fix and check relevant adjacent behavior. Record exact
+      commands, results, and any checks that could not run with their reasons.
+
+   Complete the report's fixed demo and acceptance table with evidence for
+   every criterion. Mark each as passed, failed, or blocked; unexecuted checks
+   are blocked, not passed. Do not claim acceptance while any required
+   criterion is failed or blocked. Keep `STATE.md` aligned with this evidence.
+5. Commit and push the branch to the user's designated private repository
+   for validation. Confirm the remote points to that repository.
+6. Use `github-pr-workflow` to open a pull request only against that private
+   repository, linking the issue and acceptance report and reporting validation
+   evidence and remaining blockers. Specify the destination explicitly (for example, `gh pr create --repo
+   yenhao-huang/TensorRT`) so the PR cannot default to the community upstream.
+   If the private destination is unknown, ask for it before publishing.
+   Do not offer or request approval to publish a community PR as part of this
+   workflow.
+7. Monitor CI and review feedback, address failures or actionable comments,
    and merge only when the user explicitly requested merging or repository
    policy clearly grants that authority.
-10. Summarize the result, validation, pull request state, and any follow-up or
+8. Summarize the result, validation, pull request state, and any follow-up or
     residual risk. Mark the run complete in `STATE.md` only when the requested
     lifecycle is actually finished.
 
@@ -71,13 +97,10 @@ the issue from the current conversation or ask the user before changing code.
   commands, and verify a remote branch before deleting it.
 - If code changes, make each commit a coherent logical unit and validate it in
   proportion to risk.
-- Committing and pushing to the user's own fork/internal repository is always
-  in scope and does not require asking first. Opening, updating the target
-  of, or otherwise publishing a pull request against the upstream/community
-  repository always requires the user's explicit, per-issue confirmation
-  first — treat it the same as merging or force-pushing: a consequential,
-  public, hard-to-reverse action that needs its own sign-off, never inferred
-  from being told to "solve" or "fix" the issue.
+- Committing, pushing, and opening the PR in the user's designated private
+  repository are in scope when solving an issue. Never create or retarget a
+  PR against the upstream/public community repository; follow `Notes` and
+  explicitly verify the PR destination.
 - Do not merge, close an issue, force-push, delete a branch, or perform another
   consequential remote action unless the user's request or established
   repository workflow authorizes it.
