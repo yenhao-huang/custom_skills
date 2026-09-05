@@ -44,13 +44,37 @@ the issue from the current conversation or ask the user before changing code.
      different issue.
    - If not resolved, continue to implementation — but reuse the reporter's
      workaround or diagnosis as a starting point when it points to the fix.
-4. Read the repository instructions and use `dev` to investigate, implement,
-   and test the smallest complete change that satisfies the issue.
+4. Read the repository instructions and
+   [references/report_template.md](references/report_template.md). Create an
+   issue report at the repository's established report location (for example,
+   `docs/howard/<issue-number>.md`) and record its path in `STATE.md`. Before
+   implementation, organize acceptance criteria from the issue and discussion:
+   give each criterion an ID, expected behavior, verification method, and
+   required evidence. Then use `dev` with these ordered development substeps:
+
+   1. **reproduce**: Run the smallest reproducer on the unmodified baseline.
+      Record the commit, environment, exact command, expected versus actual
+      behavior, exit code, and relevant output. If reproduction is blocked or
+      unsuccessful, record the limitation and investigate before claiming a
+      reproduced bug; never invent baseline evidence.
+   2. **dev**: Diagnose the root cause and implement the smallest complete fix.
+      Explain the changed behavior and map the changes to acceptance criteria
+      in the report. Review the diff and resolve actionable findings.
+   3. **regression test**: Add or update a focused regression test for the
+      original failure and run it against both baseline and fixed code where
+      feasible, recording failure before and success after. Rerun the original
+      reproducer on the fix and check relevant adjacent behavior. Record exact
+      commands, results, and any checks that could not run with their reasons.
+
+   Complete the report's fixed demo and acceptance table with evidence for
+   every criterion. Mark each as passed, failed, or blocked; unexecuted checks
+   are blocked, not passed. Do not claim acceptance while any required
+   criterion is failed or blocked. Keep `STATE.md` aligned with this evidence.
 5. Commit and push the branch to the user's designated private repository
    for validation. Confirm the remote points to that repository.
 6. Use `github-pr-workflow` to open a pull request only against that private
-   repository, linking the issue and reporting validation evidence. Specify
-   the destination explicitly (for example, `gh pr create --repo
+   repository, linking the issue and acceptance report and reporting validation
+   evidence and remaining blockers. Specify the destination explicitly (for example, `gh pr create --repo
    yenhao-huang/TensorRT`) so the PR cannot default to the community upstream.
    If the private destination is unknown, ask for it before publishing.
    Do not offer or request approval to publish a community PR as part of this
