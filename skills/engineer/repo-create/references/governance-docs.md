@@ -18,7 +18,7 @@ Recommended sections:
 - `Git Rules`: route branch, commit, issue, PR, and release-record work to the
   matching document under `docs/rules/git/`.
 - `Human Documentation`: require reading `docs/rules/human-docs.md` before
-  proposing changes to confirmed features, roadmap, or weekly history. Code or
+  proposing changes to the roadmap or weekly history. Code or
   PR completion may prompt a proposal but does not authorize a document mutation.
 - `Validation`: common test, lint, type-check, build, or smoke commands.
 - `Git Hygiene`: preserve unrelated changes, stage scoped files only, and use
@@ -84,26 +84,24 @@ Use separate documents so each operation loads the relevant rules:
 | `changelog.md` | Commit-bounded release traceability | [changelog.md](rules/git/changelog.md) |
 
 Inspect the target's current branch and release conventions before adapting
-these patterns. If migrating `docs/rules/git.md`, preserve its required rules,
+these patterns. When reorganizing existing rules, preserve their constraints,
 update inbound references in `AGENTS.md` and other docs, and avoid leaving two
 conflicting sources of truth.
 
 ## docs/rules/human-docs.md And docs/human/
 
-Purpose: distinguish human-confirmed features, priorities, and weekly history
+Purpose: distinguish human-confirmed priorities and weekly history
 from implementation records. Use [human-docs.md](rules/human-docs.md) for the
 confirmation workflow, including changes to the rule itself.
 
 The proposed human documentation set is:
 
-- `docs/human/feature-list.md`: confirmed features and supporting evidence.
 - `docs/human/roadmap.md`: human-confirmed priorities, milestones, and non-goals.
 - `docs/human/changelog/<YYYY-Www>.md`: evidence-based ISO-week notes.
 
-Keep speculative plans out of the confirmed feature list. Do not invent dates,
-commitments, or completion. Propose updates when major features change, but write
-only within a confirmed batch. Existing `docs/feature-list.md` content and its
-links must be preserved unless a migration is explicitly authorized.
+Do not invent dates, commitments, or completion. Propose updates when priorities
+or significant outcomes change, but write only within a confirmed batch.
+Preserve existing human documentation and links unless migration is authorized.
 
 Release records, when used, belong to the separately governed `changelog/` and
 do not replace or implicitly authorize the human weekly notes.

@@ -6,8 +6,8 @@ their content or authorization boundaries.
 
 ## Ownership And Confirmation
 
-`docs/human/` is the human-owned view of confirmed features, direction, and change
-history. Agents may read and summarize it without approval. Before any mutation,
+`docs/human/` is the human-owned view of confirmed direction and change history.
+Agents may read and summarize it without approval. Before any mutation,
 show the exact paths and summarize the proposed batch, then obtain explicit
 human confirmation for that batch. Mutation includes creation, editing,
 appending, formatting, renaming, moving, and deletion of files or directories.
@@ -23,20 +23,17 @@ boundary. Continue other authorized governance work while a batch is pending.
 
 ```text
 docs/human/
-|-- feature-list.md
-|-- roadmap.md
-`-- changelog/
-    `-- <YYYY-Www>.md
+    roadmap.md
+    changelog/
+        <YYYY-Www>.md
 ```
 
-- `feature-list.md`: confirmed features and evidence, with links to documentation,
-  implementation, or accepted results. Keep speculative features out of it.
 - `roadmap.md`: human-confirmed priorities, milestones, and non-goals. Do not
   invent dates, commitments, or progress.
 - `changelog/<YYYY-Www>.md`: evidence-based weekly notes, using the ISO week-year
   and week number, including at calendar-year boundaries.
 
-For existing `docs/feature-list.md` or other human docs, inspect inbound links
+For existing human docs, inspect inbound links
 and propose any migration as an explicit batch; update affected navigation in
 the same approved change. Do not silently move files or create a competing copy.
 Preserve established paths when migration has not been requested or confirmed.

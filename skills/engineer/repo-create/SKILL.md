@@ -1,6 +1,6 @@
 ---
 name: repo-create
-description: Create or refine repository governance docs through discussion with the user. Use when Codex needs to help set up a repo, define AGENTS.md and docs/rules including Git workflow rules, establish human-owned feature, roadmap, and changelog docs, or teach repository management and feature tracking.
+description: Create or refine repository governance docs through discussion with the user. Use when Codex needs to help set up a repo, define AGENTS.md and docs/rules including Git workflow rules, establish human-owned roadmap and changelog docs, or teach repository management.
 ---
 
 # Repo Create
@@ -39,15 +39,15 @@ the repo.
      secrets, data/model storage, and validation commands.
    - `git/branch.md`, `git/commit.md`, `git/issues.md`,
      `git/pull-request.md`, and `git/changelog.md`: focused Git workflow rules.
-     Read the matching bundled references before drafting each file. If replacing
-     an existing `git.md`, preserve its constraints and update inbound links.
+     Read the matching bundled references before drafting each file and preserve
+     existing constraints and inbound links when reorganizing rules.
    - `human-docs.md`: ownership, confirmation, structure, and evidence rules.
      Read `references/rules/human-docs.md` before creating or changing this rule;
      its mutation also requires confirmation covering the proposed batch.
 6. Propose the human documentation batch:
-   - Use `docs/human/feature-list.md`, `docs/human/roadmap.md`, and
-     `docs/human/changelog/<YYYY-Www>.md` for confirmed features, direction, and
-     weekly history. Preserve existing paths unless migration is authorized.
+   - Use `docs/human/roadmap.md` and `docs/human/changelog/<YYYY-Www>.md`
+     for confirmed direction and weekly history. Preserve existing paths unless
+     migration is authorized.
    - Show exact paths and the proposed batch before seeking confirmation. Proceed
      when an existing explicit instruction already covers that batch; otherwise
      await confirmation before any mutation, including initial creation or moves.
@@ -87,7 +87,6 @@ the repo.
   constraints.
 - Keep governance docs practical: prefer rules that agents and developers can
   follow during day-to-day changes.
-- Keep feature-list entries about significant features, not every minor commit.
 - If creating a new repo from scratch, create the governance docs before adding
   broad implementation structure.
 
