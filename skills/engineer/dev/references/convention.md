@@ -17,19 +17,17 @@ Use this structure strictly. New files and directories must be placed in the mat
 .
 ├── data/              # project-specific data (intermediate / temp)
 ├── logs/              # runtime logs
-├── lib/               # shared utilities
+├── src/               # application code, APIs, business logic, shared utilities
 ├── test/              # test cases
 ├── external/          # third-party services (vllm, llama-server, etc.)
 ├── configs/           # config files (yaml/json/env templates)
-├── core/
-│   ├── api/           # API layer (FastAPI / routes)
-│   └── service/       # business logic / pipelines
-├── ui/                # frontend / interface
+├── scripts/           # startup scripts and service entrypoints
+├── observability/     # monitoring, metrics, tracing, operational dashboards
 ├── results/           # evaluation outputs
 ├── exp/               # experiments / research
 ├── docs/              # project documentation
 ├── .gitignore
-├── AGENT.md           # Codex/agent project instructions
+├── AGENTS.md          # Codex/agent project instructions
 ├── CLAUDE.md          # Claude project instructions
 └── README.md
 
@@ -100,8 +98,7 @@ Follow these rules strictly.
 
 ### 4. Git Ignore
 
-For new projects, create `.gitignore` from `references/.gitignore.template`.
-Read that template before scaffolding `.gitignore`, and copy its contents exactly unless the target project convention explicitly overrides it.
+For new projects, use the target repository ignore template when available; otherwise exclude local secrets, environments, caches, logs, datasets, model weights, and generated outputs according to the active project rules.
 
 ---
 
