@@ -25,6 +25,7 @@ unless the user or existing repository conventions say otherwise:
     AGENTS.md
     README.md
     .gitignore
+    .codex/skills/    # project-local Codex skills
     configs/          # config files, env templates, YAML/JSON defaults
     src/              # application code, APIs, business logic, shared utilities
     scripts/          # startup scripts and service entrypoints
