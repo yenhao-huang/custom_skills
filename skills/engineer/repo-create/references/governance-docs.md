@@ -15,10 +15,11 @@ Recommended sections:
   moving, or deleting directories.
 - `Environment Rules`: require reading `docs/rules/environment.md` before
   installing packages, changing runtimes, starting services, or assuming paths.
-- `Git Rules`: require reading `docs/rules/git.md` before staging, committing,
-  branch changes, or remote operations.
-- `Feature Tracking`: require updating `docs/feature-list.md` when major
-  features are added, removed, or materially changed.
+- `Git Rules`: route branch, commit, issue, PR, and release-record work to the
+  matching document under `docs/rules/git/`.
+- `Human Documentation`: require reading `docs/rules/human-docs.md` before
+  proposing changes to the roadmap or weekly history. Code or
+  PR completion may prompt a proposal but does not authorize a document mutation.
 - `Validation`: common test, lint, type-check, build, or smoke commands.
 - `Git Hygiene`: preserve unrelated changes, stage scoped files only, and use
   focused commits.
@@ -68,42 +69,46 @@ Mark unknowns explicitly, for example:
 Decision needed: choose Python version before adding runtime-specific tooling.
 ```
 
-## docs/rules/git.md
+## docs/rules/git/
 
 Purpose: define version-control behavior for humans and agents.
 
-Include:
+Use separate documents so each operation loads the relevant rules:
 
-- Whether local commits are expected after validated changes.
-- How to inspect the working tree before staging.
-- Rule to stage only files related to the current task.
-- Rule to inspect staged diff before committing.
-- Conventional Commit examples.
-- Rule that remote pushes require explicit user instruction.
-- Nested repository guidance: verify `git rev-parse --show-toplevel` before
-  staging or committing.
+| Target document | Purpose | Bundled reference |
+| --- | --- | --- |
+| `branch.md` | Branch roles, isolated work, and cleanup | [branch.md](rules/git/branch.md) |
+| `commit.md` | Scoped staging, commit messages, and history | [commit.md](rules/git/commit.md) |
+| `issues.md` | Scope, evidence, ownership, and issue lifecycle | [issues.md](rules/git/issues.md) |
+| `pull-request.md` | Base/head, checks, publication, and merge authority | [pull-request.md](rules/git/pull-request.md) |
+| `changelog.md` | Commit-bounded release traceability | [changelog.md](rules/git/changelog.md) |
 
-Use `references/rules/git.md` as the source pattern.
+Inspect the target's current branch and release conventions before adapting
+these patterns. When reorganizing existing rules, preserve their constraints,
+update inbound references in `AGENTS.md` and other docs, and avoid leaving two
+conflicting sources of truth.
 
-## docs/feature-list.md
+## docs/rules/human-docs.md And docs/human/
 
-Purpose: maintain a concise list of major features.
+Purpose: distinguish human-confirmed priorities and weekly history
+from implementation records. Use [human-docs.md](rules/human-docs.md) for the
+confirmation workflow, including changes to the rule itself.
 
-Recommended columns:
+The proposed human documentation set is:
 
-```markdown
-| Feature | Status | Owner | Docs / Entry Points | Notes |
-| --- | --- | --- | --- | --- |
-| Example feature | planned | TBD | `path/to/doc.md` | One-line scope. |
-```
+- `docs/human/roadmap.md`: human-confirmed priorities, milestones, and non-goals.
+- `docs/human/changelog/<YYYY-Www>.md`: evidence-based ISO-week notes.
 
-Status values should stay simple:
+Do not invent dates, commitments, or completion. Propose updates when priorities
+or significant outcomes change, but write only within a confirmed batch.
+Preserve existing human documentation and links unless migration is authorized.
 
-- `planned`
-- `in_progress`
-- `available`
-- `deprecated`
-- `removed`
+Release records, when used, belong to the separately governed `changelog/` and
+do not replace or implicitly authorize the human weekly notes.
 
-Update this file when a change adds, removes, renames, or materially changes a
-major feature. Do not use it as a full changelog.
+## Source Pattern
+
+The Git directory split and human documentation boundary are adapted from
+[npu-pynq governance rules](https://github.com/yenhao-huang/npu-pynq/tree/main/docs/rules).
+Its hardware-specific scopes, branch names, deployment gates, and release
+procedures are not defaults for unrelated repositories.

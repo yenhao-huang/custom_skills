@@ -1,6 +1,6 @@
 ---
 name: repo-create
-description: Create or refine repository governance docs through discussion with the user. Use when Codex needs to help set up a repo, define AGENTS.md instructions, define docs/rules such as filetree.md and environment.md, create or maintain docs/feature-list.md, or teach a user how to manage a repository with explicit rules and feature tracking.
+description: Create or refine repository governance docs through discussion with the user. Use when Codex needs to help set up a repo, define AGENTS.md and docs/rules including Git workflow rules, establish human-owned roadmap and changelog docs, or teach repository management.
 ---
 
 # Repo Create
@@ -30,21 +30,33 @@ the repo.
    - Teach the user where the important docs live and how to update them.
    - Point agents to `docs/rules/filetree.md` before directory changes and to
      `docs/rules/environment.md` before environment changes.
-   - Point agents to `docs/rules/git.md` before staging, committing, or
-     changing branch/remotes.
+   - Route Git operations to the relevant file in `docs/rules/git/` and human
+     documentation mutations to `docs/rules/human-docs.md`.
 5. Create or update `docs/rules/`:
    - `filetree.md`: allowed directory tree, directory roles, creation rules,
      generated-file rules, and how to propose new directories.
    - `environment.md`: language/runtime versions, package managers, services,
      secrets, data/model storage, and validation commands.
-   - `git.md`: commit workflow, staging scope, dirty-worktree handling,
-     Conventional Commit guidance, and remote/push rules.
-6. Create or update `docs/feature-list.md`:
-   - Track major user-visible or operational features.
-   - Keep entries short, current, and linked to docs or implementation files
-     when useful.
+   - `git/branch.md`, `git/commit.md`, `git/issues.md`,
+     `git/pull-request.md`, and `git/changelog.md`: focused Git workflow rules.
+     Read the matching bundled references before drafting each file and preserve
+     existing constraints and inbound links when reorganizing rules.
+   - `human-docs.md`: ownership, confirmation, structure, and evidence rules.
+     Read `references/rules/human-docs.md` before creating or changing this rule;
+     its mutation also requires confirmation covering the proposed batch.
+6. Propose the human documentation batch:
+   - Use `docs/human/roadmap.md` and `docs/human/changelog/<YYYY-Www>.md`
+     for confirmed direction and weekly history. Preserve existing paths unless
+     migration is authorized.
+   - Show exact paths and the proposed batch before seeking confirmation. Proceed
+     when an existing explicit instruction already covers that batch; otherwise
+     await confirmation before any mutation, including initial creation or moves.
+   - After the authorized write, read back the files and check evidence. Code or
+     PR completion alone does not authorize updates to human-owned docs.
 7. Validate the docs:
-   - Check links and paths against the actual repo.
+   - Check links and paths against the actual repo, including navigation changed
+     by any Git-rule or human-doc migration. Distinguish proposed paths from
+     files already created; report any batch still awaiting confirmation.
    - Run the smallest relevant validation command if the repo defines one.
    - Inspect `git diff --check` before committing or handing off.
 8. Mark completed or blocked steps in `STATE.md` with evidence before the final
@@ -53,12 +65,18 @@ the repo.
 ## Reference
 
 - Read `references/governance-docs.md` when writing or revising the actual
-  `AGENTS.md`, `docs/rules/filetree.md`, `docs/rules/environment.md`, or
-  `docs/feature-list.md` content.
+  `AGENTS.md`, `docs/rules/`, or human documentation content.
 - Read `references/rules/filetree.md` before creating or moving governance
   files.
 - Read `references/rules/env.md` before writing environment assumptions.
-- Read `references/rules/git.md` before writing git workflow rules.
+- Read the matching Git reference before writing that rule:
+  [branches](references/rules/git/branch.md),
+  [commits](references/rules/git/commit.md),
+  [issues](references/rules/git/issues.md),
+  [pull requests](references/rules/git/pull-request.md), and
+  [release changelogs](references/rules/git/changelog.md).
+- Read [human documentation](references/rules/human-docs.md) before proposing or
+  changing human-owned docs or their rule.
 - Read `references/rules/state-rules.md` before changing `STATE.md`.
 
 ## Rules
@@ -69,7 +87,6 @@ the repo.
   constraints.
 - Keep governance docs practical: prefer rules that agents and developers can
   follow during day-to-day changes.
-- Keep feature-list entries about significant features, not every minor commit.
 - If creating a new repo from scratch, create the governance docs before adding
   broad implementation structure.
 

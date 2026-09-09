@@ -22,32 +22,45 @@ unless the user or existing repository conventions say otherwise:
 
 ```text
 .
-|-- AGENTS.md
-|-- README.md
-|-- .gitignore
-|-- configs/          # config files, env templates, YAML/JSON defaults
-|-- core/
-|   |-- api/          # API, CLI, routes, entrypoints
-|   `-- service/      # business logic, pipelines, orchestration
-|-- data/             # project-local temporary or symlinked data only
-|-- docs/
-|   |-- feature-list.md
-|   `-- rules/
-|       |-- environment.md
-|       |-- filetree.md
-|       `-- git.md
-|-- exp/              # experiments, spikes, research notes
-|-- external/         # third-party service wrappers or local integrations
-|-- lib/              # shared utilities
-|-- logs/             # local runtime logs, ignored unless explicitly kept
-|-- results/          # evaluation outputs and generated reports
-|-- test/             # tests when the repo does not already use tests/
-`-- ui/               # frontend or user interface code
+    AGENTS.md
+    README.md
+    .gitignore
+    configs/          # config files, env templates, YAML/JSON defaults
+    src/              # application code, APIs, business logic, shared utilities
+    scripts/          # startup scripts and service entrypoints
+    data/             # project-local temporary or symlinked data only
+    docs/
+        human/        # create or migrate only with batch confirmation
+            roadmap.md
+            changelog/
+                <YYYY-Www>.md
+        rules/
+            environment.md
+            filetree.md
+            human-docs.md
+            git/
+                branch.md
+                commit.md
+                issues.md
+                pull-request.md
+                changelog.md
+    exp/              # experiments, spikes, research notes
+    external/         # third-party service wrappers or local integrations
+    logs/             # local runtime logs, ignored unless explicitly kept
+    results/          # evaluation outputs and generated reports
+    test/             # tests when the repo does not already use tests/
+    observability/    # monitoring, metrics, tracing, and operational dashboards
 ```
 
-If the existing repository already uses `tests/`, `src/`, `scripts/`, `app/`,
+If the existing repository already uses `tests/`, `app/`,
 or another established layout, preserve it and document that as the active
 layout instead of forcing the default tree.
+
+The human docs subtree is a proposed contract, not permission to create or move
+files. Follow [human-docs.md](human-docs.md) for the confirmation boundary.
+Where versioned release records are part of the agreed workflow, document a
+separate top-level `changelog/` according to [git/changelog.md](git/changelog.md).
+It has a different purpose and ownership from `docs/human/changelog/`.
 
 ## Required Sections In docs/rules/filetree.md
 
