@@ -20,6 +20,8 @@ Recommended sections:
 - `Human Documentation`: require reading `docs/rules/human-docs.md` before
   proposing changes to the roadmap or weekly history. Code or
   PR completion may prompt a proposal but does not authorize a document mutation.
+- `Issue Acceptance`: require `docs/rules/demo.md` and link each issue PR to its
+  human summary, developer reproduction sequence, and detailed evidence.
 - `Validation`: common test, lint, type-check, build, or smoke commands.
 - `Git Hygiene`: preserve unrelated changes, stage scoped files only, and use
   focused commits.
@@ -105,6 +107,20 @@ Preserve existing human documentation and links unless migration is authorized.
 
 Release records, when used, belong to the separately governed `changelog/` and
 do not replace or implicitly authorize the human weekly notes.
+
+## docs/rules/demo.md And demo/
+
+Use [demo rules](rules/demo.md) to define one acceptance package per issue under
+`demo/issues-<view-id>-<issue-id>/`. Include `reports.md` for headline results and
+insights in tables/bullets, `reproduce.md` for developer review and execution,
+and `detail/` for complete experimental evidence. Reproduction defaults to
+starting an existing environment; document a separate from-scratch path, then
+the shared test-script and result-display-script sequence.
+
+Keep the six-digit inverse base36 naming contract consistent with frontend
+ascending ordinal sorting. Link this rule from AGENTS.md, the file tree, and
+PR acceptance guidance. These are issue evidence packages, distinct from
+human-owned roadmap/weekly notes; preserve their separate confirmation rules.
 
 ## Source Pattern
 
