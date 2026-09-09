@@ -6,6 +6,9 @@ Use this reference when writing `docs/rules/git/pull-request.md`.
    and the actual integration base. Read contribution rules and PR templates.
 2. Inspect the entire base-to-head diff and commit list. Run the repository's
    applicable validation and name each blocked or unrun check with its reason.
+   For issue work, apply [demo acceptance rules](../demo.md): link the issue
+   package, verify reports/reproduction/detail evidence, and disclose failed or
+   unrun checks before claiming acceptance.
 3. Describe the problem, resulting behavior, linked issues, exact validation
    results, compatibility impact, and remaining risks. Keep independently useful
    commits distinct; use the repository's approved squash strategy for iterations

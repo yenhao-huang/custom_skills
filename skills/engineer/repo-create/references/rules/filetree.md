@@ -30,12 +30,18 @@ unless the user or existing repository conventions say otherwise:
     src/              # application code, APIs, business logic, shared utilities
     scripts/          # startup scripts and service entrypoints
     data/             # project-local temporary or symlinked data only
+    demo/             # issue acceptance evidence
+        issues-<view-id>-<issue-id>/
+            reports.md
+            reproduce.md
+            detail/
     docs/
         human/        # create or migrate only with batch confirmation
             roadmap.md
             changelog/
                 <YYYY-Www>.md
         rules/
+            demo.md
             environment.md
             filetree.md
             human-docs.md
@@ -62,6 +68,10 @@ files. Follow [human-docs.md](human-docs.md) for the confirmation boundary.
 Where versioned release records are part of the agreed workflow, document a
 separate top-level `changelog/` according to [git/changelog.md](git/changelog.md).
 It has a different purpose and ownership from `docs/human/changelog/`.
+
+Follow [demo rules](demo.md) for deterministic descending issue display order,
+report/reproduction roles, and evidence storage. Create issue packages with real
+evidence during issue work, not placeholder acceptance claims during setup.
 
 ## Required Sections In docs/rules/filetree.md
 

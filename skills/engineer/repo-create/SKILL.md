@@ -1,6 +1,6 @@
 ---
 name: repo-create
-description: Create or refine repository governance docs through discussion with the user. Use when Codex needs to help set up a repo, define AGENTS.md and docs/rules including Git workflow rules, establish human-owned roadmap and changelog docs, or teach repository management.
+description: Create or refine repository governance docs through discussion with the user. Use when Codex needs to help set up a repo, define AGENTS.md and docs/rules including Git workflow rules, establish human-owned roadmap and changelog docs, define issue acceptance demos, or teach repository management.
 ---
 
 # Repo Create
@@ -32,6 +32,7 @@ the repo.
      `docs/rules/environment.md` before environment changes.
    - Route Git operations to the relevant file in `docs/rules/git/` and human
      documentation mutations to `docs/rules/human-docs.md`.
+   - Route issue acceptance and reproduction work to `docs/rules/demo.md`.
 5. Create or update `docs/rules/`:
    - `filetree.md`: allowed directory tree, directory roles, creation rules,
      generated-file rules, and how to propose new directories.
@@ -44,6 +45,12 @@ the repo.
    - `human-docs.md`: ownership, confirmation, structure, and evidence rules.
      Read `references/rules/human-docs.md` before creating or changing this rule;
      its mutation also requires confirmation covering the proposed batch.
+   - `demo.md`: issue acceptance packages, reverse-sorted directory names,
+     human result summaries, developer reproduction, and detailed evidence.
+     Read [demo rules](references/rules/demo.md); document the target layout
+     `demo/issues-<view-id>-<issue-id>/{reports.md,reproduce.md,detail/}` and
+     link the acceptance gate from AGENTS.md and PR guidance. Define the rules
+     without fabricating completed issue evidence during repository setup.
 6. Propose the human documentation batch:
    - Use `docs/human/roadmap.md` and `docs/human/changelog/<YYYY-Www>.md`
      for confirmed direction and weekly history. Preserve existing paths unless
@@ -57,6 +64,8 @@ the repo.
    - Check links and paths against the actual repo, including navigation changed
      by any Git-rule or human-doc migration. Distinguish proposed paths from
      files already created; report any batch still awaiting confirmation.
+   - Check demo naming examples, result/evidence navigation, and both documented
+     environment paths. Distinguish rule validation from actually running a demo.
    - Run the smallest relevant validation command if the repo defines one.
    - Inspect `git diff --check` before committing or handing off.
 8. Mark completed or blocked steps in `STATE.md` with evidence before the final
@@ -68,6 +77,7 @@ the repo.
   `AGENTS.md`, `docs/rules/`, or human documentation content.
 - Read `references/rules/filetree.md` before creating or moving governance
   files.
+- Read [demo rules](references/rules/demo.md) before defining issue acceptance.
 - Read `references/rules/env.md` before writing environment assumptions.
 - Read the matching Git reference before writing that rule:
   [branches](references/rules/git/branch.md),
